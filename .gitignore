@@ -1,0 +1,5 @@
+credentials/
+output/
+*.json
+set_sy.py
+.env
