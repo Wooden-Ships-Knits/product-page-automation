@@ -1,14 +1,25 @@
 import requests
-import Setup.set_sy as set_sy
-import requests
+try:
+    from Setup import set_sy
+except ImportError:
+    import set_sy
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+
+"""
+Bagian ini digunakan untuk fetch Product ID yang diupload ke google sheet guna untuk menghindari duplicate product page jika sudah ada product page dengan style-color yang sama.
+This section is used to fetch the Product ID uploaded to Google Sheets in order to avoid duplicate product pages when a product page with the same style-color already exists.
+"""
+
+
+
+
 # -------------------------
 # CONFIG
 # -------------------------
 SHOP = "wooden-ships"
 SPREADSHEET_ID = "1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk"
-RANGE = "Sheet1!A1"
+RANGE = "PP SY LIST!A1"
 
 
 
