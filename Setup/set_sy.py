@@ -3,11 +3,12 @@ import requests
 from dotenv import load_dotenv
 import os
 from pathlib import Path
-
+load_dotenv(Path(__file__).parent / ".env", override=True)
 
 token_url = f"https://wooden-ships.myshopify.com/admin/oauth/access_token"
+product_url = "https://wooden-ships.myshopify.com/admin/api/2026-01/products.json"
 
-load_dotenv(Path(__file__).parent / ".env", override=True)
+
 
 def get_token():
     r = requests.post(

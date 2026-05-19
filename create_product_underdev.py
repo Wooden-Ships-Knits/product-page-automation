@@ -578,6 +578,7 @@ def create_unfix(products, season):
             price = product.get_fullprice()
             metafield = product.get_meta_chart()
             tipe = product.get_type()
+            
         except Exception as e:
             print(f"{product_name} - {color_raw} is skipped due to ",e)
             continue

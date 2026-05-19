@@ -2,10 +2,11 @@ from Setup import setup
 import pandas as pd
 import os
 from dotenv import load_dotenv
-import requests
 from config.varia import IM_header
 from pathlib import Path
 import time
+from Setup import tags_generator as t
+from datetime import datetime
 load_dotenv(Path(__file__).parent / "Setup/.env", override=True)
 
 
@@ -14,17 +15,22 @@ This is for fetching all the information needed for a style
 """
 
 class ProductInfo:
-    def __init__(self,style, color,season,sample , sale):
+    def __init__(self,style, color,season,sample , sale, sas):
         self.style = style
         self.color = color
         self.season = season.title()
         self.sample = sample
         self.sale = sale
-        self.season_code = season.split()[1][0]+season.split()[0]           # 26 SPRING -> S26
+        self.seasonal_letter = season.split()[1][0]
+        self.season_code = self.seasonal_letter+season.split()[0]           # 26 SPRING -> S26
         # self.IM_path = f"/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com/Shared drives/PTIF SERVER/Collection/{self.season}/IM/{self.season_code} IM MASTER.xlsx"
         self.IM_path = f"Copy of {self.season_code} IM MASTER.xlsx"
         self.sizes = ["X/S (2/4)", "S/M (6/8)", "M/L (10/12)", "X/L (14/16)"]
-        
+        if self.seasonal_letter=="S":
+            self.cat_code = f"K{(int(season.split()[0])+ 2)*2}"
+        elif self.seasonal_letter =="F":
+            self.cat_code = f"K{(int(season.split()[0])+ 2)*2+1}"
+
     def title_and_desc(self):
         print("processing title page")
         title_page = f"{self.style}"
@@ -107,6 +113,9 @@ class ProductInfo:
 
     def get_weight(self):
         df_im = self._IM_data()
+        df_im = df_im[df_im["DESCRIPTION"].str.contains(self.style, case=False, na=False)&
+            df_im["WS TAG COLOR"].str.contains(self.color, case=False, na=False)]
+    
         return df_im["DESCRIPTION"].str.split(" - ").str[-1].tolist(), df_im["PRE COMPONENT WT (PC WT)"].tolist()
 
     def get_sku_barcode(self):
@@ -126,7 +135,7 @@ class ProductInfo:
         df= df[
             df["Style"].str.contains(self.style, case=False, na=False) &
             df["Color"].str.contains(self.color, case=False, na=False) &
-            df["Lineitem sku"].str.contains("K56", case=False, na=False) ## need an adjustment for this when we 
+            df["Lineitem sku"].str.contains(self.cat_code, case=False, na=False) ## need an adjustment for this when we 
         ]
 
         return df["UPC Barcode"].tolist(), df["Lineitem sku"].tolist()
@@ -142,10 +151,11 @@ class ProductInfo:
             matched_row = df[df['COLOR'].str.contains(color, case=False, na=False)]
             if not matched_row.empty:
                 gc = matched_row['GENERIC COLOR (AI GENERATED)'].iloc[0]
-                if gc in color:
-                    generic_colors.append(color)
-                else:
-                    generic_colors.append(gc)
+                # if gc in color:
+                #     generic_colors.append(color)
+                # else:
+                #     generic_colors.append(gc)
+                generic_colors.append(gc)
         return generic_colors
 
     def get_metachart(self):
@@ -382,7 +392,7 @@ class ProductInfo:
         colors = self.color.split("/")
         text_generic_colors = []
         for i, c, in enumerate(generic_colors):
-            if self.color.split("/")[i] == c:
+            if c in self.color.split("/")[i]:
                 text_generic_colors.append("")
             else:
                 text_generic_colors.append(f" {c}")
@@ -422,3 +432,39 @@ class ProductInfo:
         else: type = ""
 
         return type
+
+    def get_tags(self):  
+        tags = t.generate_tags(self.style,self.color)
+        if self.sale == True:
+            if self.sample == True:
+                tags+="no-returns, Sample, Sale, Off, Garage, Discount, Disc, final-sale, "
+            elif self.sas == True:
+                tags+= "no-returns, Obsolete, Sale, Off, Garage, Discount, Disc, Open Stock, Open Obsolete, check-qty, final-sale, "
+            else:
+                tags +="no-returns, Stock, Sale, Off, Garage, Discount, Disc, Additional Stock, additional discontinue items, final-sale, "
+
+        df_ssi = self._master_data()
+
+        if df_ssi["DEV | XL | (Y/N)"].iloc[0]=="N":
+            tags = tags.replace("FILTERBY-X/L, L/XL, X/L, ","") 
+
+        if df_ssi["WEB | PRINTED | (Y/N)"].iloc[0] == "Y":
+            tags += "hand printed, printed, "
+
+        generic_color = self.get_generic_color()[0].title()
+
+        if generic_color== "Purple":
+            generic_color = f"{generic_color}, Violet"
+        if generic_color== "White" or generic_color=="Black" or generic_color=="Grey" or generic_color=="Brown":
+            generic_color = f"{generic_color}, Neutral, "
+        if generic_color=="Grey":
+            generic_color = f"{generic_color}, Gray"
+        if generic_color=="Brown":
+            generic_color = f"{generic_color}, Chocolate, Tan, Cream, Nude"
+
+        tags +=f"{generic_color}, "
+
+        tags += f"Additional {datetime.now().strftime('%b %-d %Y')}"
+
+        return tags
+                              

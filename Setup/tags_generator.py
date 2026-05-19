@@ -1,10 +1,14 @@
-import setup
+import Setup.setup as setup
+from dotenv import load_dotenv
+from pathlib import Path
+import os
+# load_dotenv(Path(__file__).parent / "Setup/.env", override=True)
 
-setup._get_sheet_values(
-    sheet_id=setup.PPA_SHEET_ID,
-    worksheet_name="Color list",
-    range_name="A:B",
-)
+# # setup._get_sheet_values(
+# #     sheet_id=os.getenv("PPA_SHEET_ID"),
+# #     worksheet_name="Color list",
+# #     range_name="A:B",
+# # )
 
 
 def generate_tags(STYLE, COLOR): #loook for better method
@@ -81,7 +85,8 @@ def generate_tags(STYLE, COLOR): #loook for better method
 
     if "COLLAR" in style:
         tags+= "collar, collarneck, "
-
+    if "MULTI" in color:
+        tags+= "Multi, "
     #-------------------------------------------------
     
     
