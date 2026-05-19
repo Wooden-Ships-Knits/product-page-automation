@@ -92,6 +92,7 @@ class Product:
             worksheet_name=worksheet,
             use_all_values=True,
         )
+        
         header = values_md[0]
         rows = values_md[1:]
 
@@ -315,6 +316,7 @@ class Product:
                 (df["DESCRIPTION"].str.contains(self.product_name)) &
                 (df["WS TAG COLOR"].str.contains(self.color_raw))
             ]
+            
             if base_filtered_im.empty:
                 print(" the product is not listed in IM master file, changing file TO FALL item")
         except Exception as e:
@@ -871,6 +873,7 @@ class Product:
             print("the item is not listed in seasonal style index file ")
             metafield =" "
             return metafield
+        
         row = filtered.iloc[0]
 
         width_updated_cols = [
@@ -892,6 +895,7 @@ class Product:
             col for col in data.columns
             if "ORIGINAL SIZE" in col and "Length" in col
         ]
+        
         if filtered["DEV | GRADED (incl XL if XL is applicable) | (Y/N)"].iloc[0]=="Y":
             size_order = ["X/S", "S/M", "M/L", "X/L"]
         elif filtered["DEV | GRADED (incl XL if XL is applicable) | (Y/N)"].iloc[0]=="N":
@@ -960,6 +964,7 @@ class Product:
             formatted_size_data.append((width, length))
 
         size_data = formatted_size_data
+        
         if filtered["DEV | GRADED (incl XL if XL is applicable) | (Y/N)"].iloc[0]=="Y" or filtered["DEV | GRADED (incl XL if XL is applicable) | (Y/N)"].iloc[0]=="": 
             print(size_data)
             (a, b), (c, d), (e, f), (g, h) = size_data

@@ -2,12 +2,12 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import gspread
 import pandas as pd
-import set_sy
+import Setup.set_sy as set_sy
 
-#============== Shopify ==========================
-SHOPIFY_ACCESS_TOKEN=set_sy.get_token()
+# ============== Shopify ==========================
+
 HEADERS = {
-    "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
+    "X-Shopify-Access-Token": set_sy.get_token(),
     "Content-Type": "application/json"
 }
 
@@ -23,6 +23,7 @@ creds = Credentials.from_service_account_file(
 
 service = build("sheets", "v4", credentials=creds)
 sheet = service.spreadsheets()
+
 gc = gspread.authorize(creds)
 _SPREADSHEET_CACHE = {}
 _WORKSHEET_CACHE = {}
@@ -83,5 +84,6 @@ def _read_excel_cached(path, header):
         dataframe = pd.read_excel(path, header=header)
         _EXCEL_CACHE[cache_key] = dataframe
     return dataframe
+
 
 #============== 

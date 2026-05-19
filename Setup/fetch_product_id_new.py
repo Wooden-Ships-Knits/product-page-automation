@@ -49,7 +49,7 @@ headers = {
 
 query = """
 query ($cursor: String) {
-  products(first: 250, after: $cursor, query: "status:active OR status:draft") {
+  products(first: 250, after: $cursor) {
     edges {
       node {
         id

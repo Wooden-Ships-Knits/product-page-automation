@@ -1,18 +1,23 @@
-"""
-Create tags for each product page, so that we can easily search for them in the future
-"""
+import setup
 
-def generate_tags(STYLE, COLOR):
-    STYLE = STYLE.upper()
-    COLOR = COLOR.upper()
-    COLOR = COLOR.split("/")[0]
+setup._get_sheet_values(
+    sheet_id=setup.PPA_SHEET_ID,
+    worksheet_name="Color list",
+    range_name="A:B",
+)
+
+
+def generate_tags(STYLE, COLOR): #loook for better method
+    style = STYLE.upper()
+    color = COLOR.upper()
+    color = color.split("/")[0]
 
     tags = STYLE.lower()+", "
 
     #--------------- fundamental -----------------------
     tags += "sweater, sweaters, sweatshirt, outfit, outfits, casual, "
     #-----------------tags of composition------------------
-    if STYLE.split(" ")[-1] == "COTTON" or  STYLE.split(" ")[-1]== "MERCER":
+    if style.split(" ")[-1] == "COTTON" or  style.split(" ")[-1]== "MERCER":
         tags += "cotton blend, cottons, cotton-vo, "
     else:
         tags += "wool blend, grassy, "
@@ -20,18 +25,18 @@ def generate_tags(STYLE, COLOR):
 
     #----------------- ply ---------------------
 
-    if "CHUNKY" in STYLE:
+    if "CHUNKY" in style:
         tags += "chunky blend, chunky tag, chunky-vo, "
     else: tags += "lightweight, "
 
 
     #-----------------tags of-sleeves -------------------------
 
-    if "TEE" in STYLE:
+    if "TEE" in style:
         tags += "tee, top tee, tee-vo, vo-design-1, sleeveless, vo-design-1, short sleeve, vo-design-1, "
-    elif "3/4" in STYLE:
+    elif "3/4" in style:
         tags += "3/4 sleeve, "
-    elif "HALF SLEEVE" in STYLE:
+    elif "HALF SLEEVE" in style :
         tags += "Half Sleeve, half sleeve, vo-design-1, "
     else:
         tags +="Long Sleeve, long sleeve, "
@@ -40,48 +45,44 @@ def generate_tags(STYLE, COLOR):
     tags += "FILTERBY-X/S, FILTERBY-S/M, FILTERBY-M/L, FILTERBY-X/L, L/XL, X/L, "
 
     #-----------------tags of type sweater----------
-    if "HOODIE" in STYLE:
+    if "HOODIE" in style:
         tags += "hoodie, hood, hoods, "
 
-    if "ZIP" in STYLE:
+    if "ZIP" in style:
         tags += "zipper, cardigan, cardi, "
-    elif "CARDIGAN" in STYLE or "CARDI" in STYLE:
+    elif "CARDIGAN" in style or "CARDI" in style:
         tags += "cardigan, cardi, "
     else: 
         tags += "Pullover (Standard), "
         
     #---------------tags pattern -------------
-    if "STRIPED" in STYLE:
+    if "STRIPED" in style:
         tags+= "stripe, stripes, "
 
-    if "PRINTED" in STYLE:
+    if "PRINTED" in style:
         tags+= "hand printed, printed, "
 
-    if "MARLED" in STYLE or "HEATHERED" in STYLE:
+    if "MARLED" in style or "HEATHERED" in style:
         tags += "heather, heathered, marl, marled, melange, "
 
     #----------------additional-----------------
-    if "POCKET" in STYLE:
+    if "POCKET" in style:
         tags += "pocket, pockets, "
 
-    if "CABLE" in STYLE:
+    if "CABLE" in style:
         tags += "cable, cables, cableknit, cable knit, "
 
     #-----------------neck----------------------
-    if " V " in STYLE:
+    if " V " in style:
         tags += "vneck, v neck, vneck-vo, "
 
-    if "CREW" in STYLE:
+    if "CREW" in style:
         tags+= "crew, crewneck, crewneck-vo, "
 
-    if "COLLAR" in STYLE:
+    if "COLLAR" in style:
         tags+= "collar, collarneck, "
 
     #-------------------------------------------------
     
     
     return tags
-
-
-tags = generate_tags("KAYA STRIPED 3/4 SLEEVE V COTTON", "ALMOND BUTTER/BLACK")
-print(tags)  

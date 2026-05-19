@@ -1,5 +1,7 @@
 credentials/
 output/
 *.json
-set_sy.py
+deletion_products.py
 .env
+*.xlsx
+*.csv

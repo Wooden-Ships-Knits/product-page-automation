@@ -5,7 +5,7 @@ NE_First_Choice_ID = "65178107952"
 NE_Sample_ID = "65218150448"
 Yarn_Warehouse_ID = "36831821872"
 from all_function_list_underdev import Product
-import set_sy
+import Setup.set_sy
 import time
 vendor = "Wooden Ships"
 TAX_code = "PC040100"
