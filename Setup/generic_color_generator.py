@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from openai import OpenAI
-import setup
+from Setup import setup
 import os
 import pandas as pd
 
@@ -59,6 +59,28 @@ Please answer with only one word mentioning the generic color of this color: {co
 Choose only from this list: ({generic_colors}).
 """
     worksheet.update(f"B{sheet_row}", [[ask_gpt(prompt)]])
+
+def gpt_choose_color(color):
+    prompt = f"""
+You are the owner of Wooden Ships, an online fashion retailer specializing in women’s sweaters.
+Your task is to classify a given sweater color into the closest generic color category.
+
+Input color: {color}
+
+Allowed generic colors: {generic_colors}
+
+Rules:
+
+Respond with only one color from the allowed list.
+Do not explain your answer.
+Do not add punctuation, extra words, or formatting.
+Choose the closest matching generic color based on common fashion retail naming conventions.
+"""
+    response = client.responses.create(
+        model="o4-mini",
+        input=prompt,
+    )
+    return response.output_text.strip()
 
 if __name__ == "__main__":
     for df_index, color in get_colors_to_fill(values).items():

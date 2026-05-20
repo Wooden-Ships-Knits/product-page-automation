@@ -5,10 +5,10 @@ from dotenv import load_dotenv
 from config.varia import IM_header
 from pathlib import Path
 import time
-from Setup import tags_generator as t
+from Setup import tags_generator as t, generic_color_generator as gcg, setup
 from datetime import datetime
 load_dotenv(Path(__file__).parent / "Setup/.env", override=True)
-
+sheet = setup.sheet
 
 """
 This is for fetching all the information needed for a style 
@@ -115,8 +115,13 @@ class ProductInfo:
         df_im = self._IM_data()
         df_im = df_im[df_im["DESCRIPTION"].str.contains(self.style, case=False, na=False)&
             df_im["WS TAG COLOR"].str.contains(self.color, case=False, na=False)]
-    
-        return df_im["DESCRIPTION"].str.split(" - ").str[-1].tolist(), df_im["PRE COMPONENT WT (PC WT)"].tolist()
+        
+        if self.sample ==True:
+            df_im = df_im[df_im["DESCRIPTION"].str.contains('S/M', case=False, na=False)]
+
+        weights = (df_im["PRE COMPONENT WT (PC WT)"].astype(float) * 1000).round().astype(int).tolist()
+        sizes = df_im["DESCRIPTION"].str.split(" - ").str[-1].tolist()
+        return sizes, weights
 
     def get_sku_barcode(self):
         if self.sample ==True:
@@ -151,11 +156,23 @@ class ProductInfo:
             matched_row = df[df['COLOR'].str.contains(color, case=False, na=False)]
             if not matched_row.empty:
                 gc = matched_row['GENERIC COLOR (AI GENERATED)'].iloc[0]
-                # if gc in color:
-                #     generic_colors.append(color)
-                # else:
-                #     generic_colors.append(gc)
                 generic_colors.append(gc)
+            else:
+                print('Generic color not found. adding new color....')
+                gc = gcg.gpt_choose_color(color)
+                generic_colors.append(gc)
+                df = pd.concat(
+                    [df, pd.DataFrame([{"COLOR": color, "GENERIC COLOR (AI GENERATED)": gc }])],
+                    ignore_index=True
+                )
+
+                sheet.values().update(
+                spreadsheetId=os.getenv('PPA_SHEET_ID'),
+                range='Color list!A2',
+                valueInputOption="RAW",
+                body={"values": df.fillna("").astype(str).values.tolist()}
+                ).execute()
+
         return generic_colors
 
     def get_metachart(self):
@@ -372,7 +389,13 @@ class ProductInfo:
             if full_price == "" or "N/A" in str(full_price) or full_price=="NO NEED FOR NOW":
                 full_price = IM_price  
 
-        return full_price,sale_price 
+        if self.sale == False:
+            sale_price = full_price
+            full_price =""
+            
+        price = sale_price
+
+        return full_price,price
 
     def get_SEL(self):
         #------------------ sale details
@@ -385,14 +408,14 @@ class ProductInfo:
             sale_title = ""
 
         #------------------ PAGE TITLE ------------------ 
-        page_title =f"{sale_title}{self.style.title()} Sweater - {self.color.title()} | Wooden Ships"
+        page_title =f"{sale_title}{self.style.title()} Sweater - {self.color.replace('/',' ').title()} | Wooden Ships"
 
         #------------- generic color fetch --------------
         generic_colors = self.get_generic_color()
         colors = self.color.split("/")
         text_generic_colors = []
         for i, c, in enumerate(generic_colors):
-            if c in self.color.split("/")[i]:
+            if c.upper() in self.color.split("/")[i].upper():
                 text_generic_colors.append("")
             else:
                 text_generic_colors.append(f" {c}")
@@ -467,4 +490,40 @@ class ProductInfo:
         tags += f"Additional {datetime.now().strftime('%b %-d %Y')}"
 
         return tags
-                              
+
+    def get_NE_qty(self):
+        df = self._ppa_data('NE STOCK')
+        df = pd.DataFrame(df[1:], columns=df[0])
+        df = df[
+            df['style'].str.contains(self.style,case=False, na=False)&
+            df['color'].str.contains(self.color, case=False, na=False)
+        ]
+        if not df.empty:
+            qty_ne = [df['X/S'].iloc[0],df['S/M'].iloc[0],df['M/L'].iloc[0],df['X/L'].iloc[0]]
+        else: qty_ne = [0,0,0,0]
+        return qty_ne
+
+    def get_BALI_qty(self):
+        df = self._ppa_data('BALI STOCK')
+        df = pd.DataFrame(df[1:], columns=df[0])
+        df = df[
+            df['style'].str.contains(self.style,case=False, na=False)&
+            df['color'].str.contains(self.color, case=False, na=False)
+        ]
+        if not df.empty:
+            qty_ba = [df['X/S'].iloc[0],df['S/M'].iloc[0],df['M/L'].iloc[0],0]
+        else: qty_ba = [0,0,0,0]
+        return qty_ba
+
+    def get_sample_qty(self):
+        df = self._ppa_data('NE SAMPLE STOCK')
+        df = pd.DataFrame(df[1:], columns=df[0])
+        df = df[
+            df['style'].str.contains(self.style,case=False, na=False)&
+            df['color'].str.contains(self.color, case=False, na=False)
+        ]
+        if not df.empty:
+            qty = df['S/M'].iloc[0]
+        else: 
+            qty = 0
+        return qty

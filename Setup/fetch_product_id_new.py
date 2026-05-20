@@ -5,6 +5,7 @@ except ImportError:
     import set_sy
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+import pandas as pd
 
 """
 Bagian ini digunakan untuk fetch Product ID yang diupload ke google sheet guna untuk menghindari duplicate product page jika sudah ada product page dengan style-color yang sama.
@@ -19,7 +20,7 @@ This section is used to fetch the Product ID uploaded to Google Sheets in order 
 # -------------------------
 SHOP = "wooden-ships"
 SPREADSHEET_ID = "1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk"
-RANGE = "PP SY LIST!A1"
+RANGE = "PP SY LIST!A2"
 
 
 
@@ -83,12 +84,12 @@ def fetch():
 
   # Header row (matches your screenshot)
   rows.append([
-      "Style",
+      "Page Title",
       "Color",
-      "FP/DC",
+      "Style",
       "Product ID",
       "Page Status",
-      "Current Production Type"
+      "FP/DC"
   ])
 
   cursor = None
@@ -134,7 +135,22 @@ def fetch():
       cursor = data["pageInfo"]["endCursor"]
 
   print(f"Fetched {len(rows)-1} products")
+  # -------------------------
+  # PREPROCESSING
+  # -------------------------
 
+  df = pd.DataFrame(rows[1:],columns=rows[0])
+
+  df['Style'] = df['Page Title']
+  df['Style'] = df['Style'].str.replace("*SALE* - ", "", regex=False)
+  df['Style'] = df['Style'].str.replace("*SALE* ", "", regex=False)
+  df['Style'] = df['Style'].str.replace("*SALE*- ", "", regex=False)
+  df['Style'] = df['Style'].str.replace("SALE* - ", "", regex=False)
+  df['Style'] = df['Style'].str.replace("*SALES* - ", "", regex=False)
+  df['Style'] = df['Style'].str.replace("*SALE * - ", "", regex=False)
+  df['Style'] = df['Style'].str.strip()
+  df['FP/DC'] = ["DC" if "SALE" in d else "FP" for d in df['Page Title']]
+  rows = df.values.tolist()
   # -------------------------
   # WRITE TO GOOGLE SHEETS
   # -------------------------

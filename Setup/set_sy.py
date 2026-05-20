@@ -33,6 +33,16 @@ headers_ = {
     "Content-Type": "application/json"
 }
     
+def post_product_page(headers,product_data):
+    response = requests.post(product_url, headers=headers, json=product_data)
+    product = response.json()["product"]
+    product_id = product["id"]
+
+    if response.status_code != 201:
+        print("Product creation failed:", response.text)
+        # continue
+
+
 def collection_release(collection,product_id,headers):
     collect_url = f"https://wooden-ships.myshopify.com/admin/api/2024-01/collects.json"
     ########## tax:clothing always the same########

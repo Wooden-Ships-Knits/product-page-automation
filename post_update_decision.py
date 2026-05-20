@@ -5,8 +5,8 @@ from pathlib import Path
 import pandas as pd
 load_dotenv(Path(__file__).parent / ".env", override=True)
 
-STYLE= "LOBSTER V-NECK COTTON"
-COLOR = "Pure Snow/Cinders/White"
+STYLE= "Maura Marled Chunky Top Cotton"
+COLOR = "Ventana Blue/Almond Butter Marl"
 def decide():
     values = setup._get_sheet_values(
         sheet_id=os.getenv("PPA_SHEET_ID"),
@@ -17,13 +17,19 @@ def decide():
     df = pd.DataFrame(values[1:],columns=values[0])
 
     df = df[
-        df["Style"].str.contains(STYLE) &
+        df["Style"].str.contains(STYLE, case=False, na=False) &
         df["Color"].str.contains(COLOR, case=False, na=False) &
-        (df["Production Status"] == "FP")]
+        (df["FP/DC"] == "DC")]
 
     if df.empty:
-        return "Not found, can create new"
-    return df["Product ID"].iloc[0]
+        print("Create new")
+        create_new = True
+        product_id = ""
+    else:
+        print("Update")
+        create_new = False
+        product_id = df['Product ID'].iloc[0]
+    return create_new, product_id
 
 print(decide())
     
