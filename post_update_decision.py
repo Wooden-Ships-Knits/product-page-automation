@@ -25,11 +25,14 @@ def decide():
         print("Create new")
         create_new = True
         product_id = ""
+        status = ""
+
     else:
         print("Update")
         create_new = False
         product_id = df['Product ID'].iloc[0]
-    return create_new, product_id
+        status = df['Page Status'].iloc[0]
+    return create_new, product_id,status
 
 print(decide())
     

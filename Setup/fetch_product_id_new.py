@@ -1,11 +1,16 @@
 import requests
 try:
-    from Setup import set_sy
+    from Setup import set_sy,setup
 except ImportError:
-    import set_sy
+    import set_sy,setup
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import pandas as pd
+import setup
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 """
 Bagian ini digunakan untuk fetch Product ID yang diupload ke google sheet guna untuk menghindari duplicate product page jika sudah ada product page dengan style-color yang sama.
@@ -13,39 +18,14 @@ This section is used to fetch the Product ID uploaded to Google Sheets in order 
 """
 
 
-
-
-# -------------------------
-# CONFIG
-# -------------------------
-SHOP = "wooden-ships"
-SPREADSHEET_ID = "1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk"
+headers = set_sy.headers_
+sheet = setup.sheet
 RANGE = "PP SY LIST!A2"
-
-
-
-# -------------------------
-# GOOGLE SHEETS SETUP
-# -------------------------
-creds = Credentials.from_service_account_file(
-    "credentials/dialy-report-automation-e20c53e67542.json",
-    scopes=["https://www.googleapis.com/auth/spreadsheets"]
-)
-
-
-service = build("sheets", "v4", credentials=creds)
-sheet = service.spreadsheets()
-
 
 # -------------------------
 # SHOPIFY GRAPHQL SETUP
 # -------------------------
-url = f"https://{SHOP}.myshopify.com/admin/api/2024-01/graphql.json"
-
-headers = {
-    "X-Shopify-Access-Token": set_sy.get_token(),
-    "Content-Type": "application/json"
-}
+url = f"https://wooden-ships.myshopify.com/admin/api/2024-01/graphql.json"
 
 
 query = """
@@ -135,6 +115,7 @@ def fetch():
       cursor = data["pageInfo"]["endCursor"]
 
   print(f"Fetched {len(rows)-1} products")
+
   # -------------------------
   # PREPROCESSING
   # -------------------------
@@ -151,19 +132,23 @@ def fetch():
   df['Style'] = df['Style'].str.strip()
   df['FP/DC'] = ["DC" if "SALE" in d else "FP" for d in df['Page Title']]
   rows = df.values.tolist()
+
   # -------------------------
   # WRITE TO GOOGLE SHEETS
   # -------------------------
   sheet.values().clear(
-      spreadsheetId=SPREADSHEET_ID,
+      spreadsheetId=os.getenv("PPA_SHEET_ID"),
       range=RANGE
   ).execute()
 
   sheet.values().update(
-      spreadsheetId=SPREADSHEET_ID,
+      spreadsheetId=os.getenv("PPA_SHEET_ID"),
       range=RANGE,
       valueInputOption="RAW",
       body={"values": rows}
   ).execute()
 
   print("Data uploaded to Google Sheets ✅")
+
+if __name__ == "__main__":
+    fetch()

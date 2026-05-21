@@ -17,6 +17,13 @@ SIZE_RANGE = {
 }
 
 
+def _to_int(v):
+    try:
+        return int(str(v).strip() or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
 def create_unfix(STYLE,COLOR,SEASON):
     try:
         P= ProductInfo(STYLE,COLOR,SEASON,sample=False, sale=False, sas=False)
@@ -43,7 +50,14 @@ def create_fixed(STYLE,COLOR,SEASON):
         print(f"ProductInfo created: STYLE={STYLE}, COLOR={COLOR}, SEASON={SEASON}")
         qty_ne = P.get_NE_qty()
         qty_ba = P.get_BALI_qty()
-        product_data = product_post(STYLE,COLOR,SEASON,P)
+        combined = [_to_int(a) + _to_int(b) for a, b in zip(qty_ne, qty_ba)]
+        keep = [i for i, q in enumerate(combined) if q > 0]
+        if not keep:
+            print(f"No stock for {STYLE} {COLOR} — skipping fixed product.")
+            return
+        qty_ne = [qty_ne[i] for i in keep]
+        qty_ba = [qty_ba[i] for i in keep]
+        product_data = product_post(STYLE,COLOR,SEASON,P,keep=keep)
     except Exception as e:
         print(e)
 
@@ -85,7 +99,14 @@ def create_sale_stock(STYLE,COLOR,SEASON):
         print(f"ProductInfo created: STYLE={STYLE}, COLOR={COLOR}, SEASON={SEASON}")
         qty_ne = P.get_NE_qty()
         qty_ba = P.get_BALI_qty()
-        product_data = product_post(STYLE,COLOR,SEASON,P)
+        combined = [_to_int(a) + _to_int(b) for a, b in zip(qty_ne, qty_ba)]
+        keep = [i for i, q in enumerate(combined) if q > 0]
+        if not keep:
+            print(f"No stock for {STYLE} {COLOR} — skipping sale_stock product.")
+            return
+        qty_ne = [qty_ne[i] for i in keep]
+        qty_ba = [qty_ba[i] for i in keep]
+        product_data = product_post(STYLE,COLOR,SEASON,P,keep=keep)
     except Exception as e:
         raise print(e)
 
@@ -121,7 +142,7 @@ def create_o4(STYLE,COLOR,SEASON):
 
     set_inventory_metafield(response,'O4')
 
-def product_post(STYLE,COLOR,SEASON,P):
+def product_post(STYLE,COLOR,SEASON,P,keep=None):
     title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
     print(f"title_page: {title_page}")
     print(f"sale_title_page: {sale_title_page}")
@@ -134,9 +155,15 @@ def product_post(STYLE,COLOR,SEASON,P):
     print(f"url: {url}")
 
     sizes,weights = P.get_weight()
-    print(f"size: {sizes}, \nweights: {weights}")
-
     barcodes, skus = P.get_sku_barcode()
+
+    if keep is not None:
+        sizes    = [sizes[i]    for i in keep]
+        weights  = [weights[i]  for i in keep]
+        skus     = [skus[i]     for i in keep]
+        barcodes = [barcodes[i] for i in keep]
+
+    print(f"size: {sizes}, \nweights: {weights}")
     print(f"barcodes: {barcodes}")
     print(f"skus: {skus}")
 

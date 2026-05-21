@@ -1,7 +1,14 @@
 credentials/
 output/
 *.json
+
+notes/
 deletion_products.py
+create_product_underdev.py
+main_underdev.py
+all_function_list_underdev.py
+
+
 .env
 *.xlsx
 *.csv
