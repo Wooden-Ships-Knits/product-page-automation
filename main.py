@@ -3,17 +3,45 @@ import fetch_to_product_page as ftp
 import pandas as pd 
 import create_pp
 import update_pp
+import post_update_decision as PUD
 
 STYLE= "MARINA CREW MERCER".upper()
 COLOR = "CANTALOUPE".upper()
 SEASON = "26 Spring"
-product_id = "7678133633072"
+production_type = "fixed"
 
+if production_type == 'fixed' or production_type == "unfix":
+    FP_DC = "FP"
+else:
+    FP_DC = "DC"
+
+create_new, product_id, status =PUD.decide(STYLE,COLOR,FP_DC)
 
 if __name__ == "__main__":
+    if status.upper() == "DRAFT":
+        if create_new==True:
+            C = create_pp.CreatePP(STYLE,COLOR,SEASON)
+            if production_type == 'unfix':
+                C.create_unfix()
+            elif production_type == 'fixed':
+                C.create_fixed() 
+            elif production_type == 'sale_stock':
+                C.create_sale_stock()
+            elif production_type == 'o4':
+                C.create_o4()
+            elif production_type == 'sample':
+                C.create_sample()
+        elif  create_new == False:
+            U = update_pp.UpdatePP(STYLE,COLOR,SEASON,product_id)
+            if production_type == 'unfix':
+                U.update_unfix()
+            elif production_type == 'fixed':
+                U.update_fixed() 
+            elif production_type == 'sale_stock':
+                U.update_sale_stock()
+            elif production_type == 'o4':
+                U.update_o4()
+            elif production_type == 'sample':
+                U.update_sample()
+    else: print('not found or an active pp. skipping')
 
-    # S = ftp.ProductInfo(STYLE,COLOR,SEASON ,sample=True, sale=True, sas = False)
-    # create_pp.create_sample(STYLE,COLOR,SEASON)
-    U = update_pp.UpdatePP(STYLE,COLOR,SEASON,product_id)
-    U.update_fixed()
-    

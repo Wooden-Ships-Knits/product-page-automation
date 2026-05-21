@@ -5,9 +5,10 @@ from pathlib import Path
 import pandas as pd
 load_dotenv(Path(__file__).parent / ".env", override=True)
 
-STYLE= "Maura Marled Chunky Top Cotton"
-COLOR = "Ventana Blue/Almond Butter Marl"
-FP_DC = "DC"
+# STYLE= "Maura Marled Chunky Top Cotton"
+# COLOR = "Ventana Blue/Almond Butter Marl"
+# FP_DC = "DC"
+
 def decide(STYLE,COLOR,FP_DC):
     values = setup._get_sheet_values(
         sheet_id=os.getenv("PPA_SHEET_ID"),
