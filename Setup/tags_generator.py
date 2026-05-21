@@ -91,3 +91,25 @@ def generate_tags(STYLE, COLOR): #loook for better method
     
     
     return tags
+
+def additional_tags(tags,sizes,qty):
+    if qty==1:
+        tags+="LAST ONE LEFT!, "
+        tmp_suffix = None
+    elif qty <6:
+        tags+= "NEARLY GONE!, "
+        tmp_suffix = "nearly-gone"
+    else: tmp_suffix = None
+    if "X/S" in sizes:
+        tags+= "FILTERBY-X/S, "
+    if "S/M" in sizes:
+        tags+= "FILTERBY-S/M, "
+    if "M/L" in sizes:
+        tags+= "FILTERBY-M/L, "
+    if "X/L" in sizes:
+        tags+= "FILTERBY-X/L, L/XL, X/L, "
+
+    return tags, tmp_suffix
+
+
+    

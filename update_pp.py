@@ -1,6 +1,6 @@
 from fetch_to_product_page import ProductInfo
 import requests
-from Setup import set_sy,setup
+from Setup import set_sy,setup, tags_generator as tg
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -38,7 +38,7 @@ class UpdatePP:
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
 
-            variants, options = self.product_post(self.COLOR, P)
+            variants, options,tags, template_suffix = self.product_post(self.COLOR, P)
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -48,6 +48,8 @@ class UpdatePP:
                     "id": self.PRODUCT_ID,
                     "variants": variants,
                     "options": options,
+                    "tags": tags,
+                    "template_suffix": template_suffix,
                 }
             }
             response = requests.put(self.url, json=payload, headers=headers)
@@ -68,11 +70,14 @@ class UpdatePP:
                 return
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
-
+            total_qty = sum(
+                self._to_int(a) + self._to_int(b)
+                for a, b in zip(qty_ne, qty_ba)
+            )
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
 
-            variants, options = self.product_post(self.COLOR, P, keep=keep)
+            variants, options,tags, template_suffix = self.product_post(self.COLOR, P, keep=keep, qty= total_qty)
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -82,6 +87,8 @@ class UpdatePP:
                     "id": self.PRODUCT_ID,
                     "variants": variants,
                     "options": options,
+                    "tags": tags,
+                    "template_suffix": template_suffix,
                 }
             }
             response = requests.put(self.url, json=payload, headers=headers)
@@ -98,7 +105,7 @@ class UpdatePP:
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
 
-            variants, options = self.product_post(self.COLOR, P)
+            variants, options,tags, template_suffix = self.product_post(self.COLOR, P,keep=None,qty=qty_sample[0])
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -108,6 +115,8 @@ class UpdatePP:
                     "id": self.PRODUCT_ID,
                     "variants": variants,
                     "options": options,
+                    "tags" : tags,
+                    "template_suffix": template_suffix
                 }
             }
             response = requests.put(self.url, json=payload, headers=headers)
@@ -131,8 +140,11 @@ class UpdatePP:
 
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
-
-            variants, options = self.product_post(self.COLOR, P, keep=keep)
+            total_qty = sum(
+                self._to_int(a) + self._to_int(b)
+                for a, b in zip(qty_ne, qty_ba)
+            )
+            variants, options,tags,template_suffix = self.product_post(self.COLOR, P, keep=keep, qty=total_qty)
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -142,6 +154,8 @@ class UpdatePP:
                     "id": self.PRODUCT_ID,
                     "variants": variants,
                     "options": options,
+                    "tags":tags,
+                    "template_suffix":template_suffix,
                 }
             }
             response = requests.put(self.url, json=payload, headers=headers)
@@ -157,7 +171,7 @@ class UpdatePP:
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
 
-            variants, options = self.product_post(self.COLOR, P)
+            variants, options,tags,template_suffix = self.product_post(self.COLOR, P)
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -167,6 +181,8 @@ class UpdatePP:
                     "id": self.PRODUCT_ID,
                     "variants": variants,
                     "options": options,
+                    "tags":tags,
+                    "template_suffix":template_suffix
                 }
             }
             response = requests.put(self.url, json=payload, headers=headers)
@@ -174,7 +190,7 @@ class UpdatePP:
         except Exception as e:
             traceback.print_exc()
     
-    def product_post(self,COLOR,P,keep=None):
+    def product_post(self,COLOR,P,keep=None,qty= None):
         sizes,weights = P.get_weight()
         barcodes, skus = P.get_sku_barcode()
 
@@ -191,7 +207,10 @@ class UpdatePP:
         full_price,price = P.get_price()
         print(f"full_price: {full_price}")
         print(f"discounted_price: {full_price}")
-
+        tags = P.get_tags()
+        tags,template_suffix = tg.additional_tags(tags,sizes,qty)
+        if template_suffix == None:
+            template_suffix ="default"
         variants = []
         print("processing variant")
 
@@ -218,7 +237,7 @@ class UpdatePP:
             "values": [COLOR.title()]
         }
         ]
-        return variants, options
+        return variants, options, tags, template_suffix
             
     def set_inventory_metafield(self,response, production_type, qty_ne=None, qty_ba=None, qty_sample = None):
         data = response.json()

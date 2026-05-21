@@ -1,6 +1,6 @@
 from fetch_to_product_page import ProductInfo
 import requests
-from Setup import set_sy,setup
+from Setup import set_sy,setup,tags_generator as tg
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -61,7 +61,12 @@ class CreatePP:
                 return
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P,keep=keep)
+            total_qty = sum(
+                self._to_int(a) + self._to_int(b)
+                for a, b in zip(qty_ne, qty_ba)
+            )
+
+            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P,keep=keep,qty=total_qty )
         except Exception as e:
             print(e)
 
@@ -82,7 +87,7 @@ class CreatePP:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=True, sale=True, sas=False)
             qty_sample = P.get_sample_qty()
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P)
+            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P,keep=None,qty=qty_sample[0])
         except Exception as e:
             raise print(e)
 
@@ -111,7 +116,11 @@ class CreatePP:
                 return
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P,keep=keep)
+            total_qty = sum(
+                self._to_int(a) + self._to_int(b)
+                for a, b in zip(qty_ne, qty_ba)
+            )
+            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P,keep=keep,qty=total_qty)
         except Exception as e:
             raise print(e)
 
@@ -147,7 +156,7 @@ class CreatePP:
 
         self.set_inventory_metafield(response,'O4')
 
-    def product_post(self,P,keep=None):
+    def product_post(self,P,keep=None,qty=None):
         title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
         print(f"title_page: {title_page}")
         print(f"sale_title_page: {sale_title_page}")
@@ -176,6 +185,9 @@ class CreatePP:
         print(f"metachart: {metachart}")
 
         tags = P.get_tags()
+        tags,template_suffix= tg.additional_tags(tags,sizes,qty)
+        if template_suffix ==None:
+            template_suffix ='default'
         print(f"tags: {tags}")
 
         _type = P.get_type()
@@ -226,6 +238,7 @@ class CreatePP:
                 "product_type": _type,
                 "tags": tags,
                 "status": "draft",
+               "template_suffix":template_suffix,
                 "published_scope": "web",
 
                 "metafields": [

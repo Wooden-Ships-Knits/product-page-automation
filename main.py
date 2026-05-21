@@ -5,8 +5,8 @@ import create_pp
 import update_pp
 import post_update_decision as PUD
 
-STYLE= "MARINA CREW MERCER".upper()
-COLOR = "CANTALOUPE".upper()
+STYLE= "EMORY TIPPED L/S TOP COTTON".upper()
+COLOR = "Ventana Blue/Twilight Sky".upper()
 SEASON = "26 Spring"
 production_type = "fixed"
 
@@ -16,6 +16,8 @@ else:
     FP_DC = "DC"
 
 create_new, product_id, status =PUD.decide(STYLE,COLOR,FP_DC)
+
+print(create_new,product_id,status)
 
 if __name__ == "__main__":
     if status.upper() == "DRAFT":
