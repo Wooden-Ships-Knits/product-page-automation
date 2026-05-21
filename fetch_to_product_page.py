@@ -22,6 +22,7 @@ class ProductInfo:
         self.sample = sample
         self.sale = sale
         self.seasonal_letter = season.split()[1][0]
+        self.sas = sas
         self.season_code = self.seasonal_letter+season.split()[0]           # 26 SPRING -> S26
         # self.IM_path = f"/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com/Shared drives/PTIF SERVER/Collection/{self.season}/IM/{self.season_code} IM MASTER.xlsx"
         self.IM_path = f"Copy of {self.season_code} IM MASTER.xlsx"
@@ -136,13 +137,15 @@ class ProductInfo:
         )
 
         df = pd.DataFrame(values[5:], columns=values[4]) ### need to inform PPIC we should change the header row
-
+        
         df= df[
             df["Style"].str.contains(self.style, case=False, na=False) &
-            df["Color"].str.contains(self.color, case=False, na=False) &
-            df["Lineitem sku"].str.contains(self.cat_code, case=False, na=False) ## need an adjustment for this when we 
+            df["Color"].str.contains(self.color, case=False, na=False)## need an adjustment for this when we 
         ]
-
+        if self.sas ==True:
+            df["Lineitem sku"].str.contains(f"P{self.cat_code}", case=False, na=False)
+        else:
+            df["Lineitem sku"].str.contains(self.cat_code, case=False, na=False)
         return df["UPC Barcode"].tolist(), df["Lineitem sku"].tolist()
     
     def get_generic_color(self):

@@ -7,7 +7,8 @@ load_dotenv(Path(__file__).parent / ".env", override=True)
 
 STYLE= "Maura Marled Chunky Top Cotton"
 COLOR = "Ventana Blue/Almond Butter Marl"
-def decide():
+FP_DC = "DC"
+def decide(STYLE,COLOR,FP_DC):
     values = setup._get_sheet_values(
         sheet_id=os.getenv("PPA_SHEET_ID"),
         worksheet_name="PP SY LIST",
@@ -19,7 +20,7 @@ def decide():
     df = df[
         df["Style"].str.contains(STYLE, case=False, na=False) &
         df["Color"].str.contains(COLOR, case=False, na=False) &
-        (df["FP/DC"] == "DC")]
+        (df["FP/DC"] == FP_DC)]
 
     if df.empty:
         print("Create new")
@@ -34,5 +35,5 @@ def decide():
         status = df['Page Status'].iloc[0]
     return create_new, product_id,status
 
-print(decide())
+# print(decide())
     

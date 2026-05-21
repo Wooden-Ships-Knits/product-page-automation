@@ -66,7 +66,7 @@ def collection_release(collection,product_id,headers):
     requests.post(collect_url, headers=headers_, json=collect_data)
     print("✅Successfully assigned to collections")
 
-def publish_to_all_channels(product_id):
+def publish_to_all_channels(product_id,sale=True):
 
     graphql_url = f"https://wooden-ships.myshopify.com/admin/api/2026-01/graphql.json"
     # Convert numeric ID to GraphQL GID
@@ -105,11 +105,12 @@ def publish_to_all_channels(product_id):
     )
 
     data = response.json()
-    # print(response.status_code)
-    # print(response.json())
     for edge in data["data"]["publications"]["edges"]:
-        # print(edge["node"]["name"], "|", edge["node"]["id"])
-        ALL_PUBLICATION_IDS.append(edge["node"]["id"])
+        print(edge["node"]["name"], "|", edge["node"]["id"])
+        if sale and edge["node"]["name"] == "Pinterest":
+            continue
+        else: 
+            ALL_PUBLICATION_IDS.append(edge["node"]["id"])
     variables = {
         "id": gid_product,
         "input": [{"publicationId": pid} for pid in ALL_PUBLICATION_IDS]

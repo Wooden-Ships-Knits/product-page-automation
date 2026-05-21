@@ -1,12 +1,8 @@
 import requests
-try:
-    from Setup import set_sy,setup
-except ImportError:
-    import set_sy,setup
+from Setup import set_sy, setup
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import pandas as pd
-import setup
 from dotenv import load_dotenv
 import os
 

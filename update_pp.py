@@ -4,6 +4,7 @@ from Setup import set_sy,setup
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import traceback
 load_dotenv(Path(__file__).parent / "Setup/.env", override=True)
 
 headers = setup.HEADERS
@@ -16,39 +17,45 @@ SIZE_RANGE = {
     "X/L": "(14-16)",
 }
 
-class CreatePP:
-    def __init__(self,STYLE,COLOR,SEASON):
-        self.STYLE= STYLE
+class UpdatePP:
+    def __init__(self,STYLE,COLOR,SEASON,PRODUCT_ID):
+        self.STYLE = STYLE
         self.COLOR = COLOR
         self.SEASON = SEASON
-      
-    def _to_int(v):
+        self.PRODUCT_ID = PRODUCT_ID
+        self.url = f"https://wooden-ships.myshopify.com/admin/api/2024-01/products/{self.PRODUCT_ID}.json"
+
+    def _to_int(self,v):
         try:
             return int(str(v).strip() or 0)
         except (TypeError, ValueError):
             return 0
-
-    def create_unfix(self):
+            
+    def update_unfix(self):
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=False, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P)
+            existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
+            sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
+
+            variants, options = self.product_post(self.COLOR, P)
+            for v in variants:
+                if v["sku"] in sku_to_id:
+                    v["id"] = sku_to_id[v["sku"]]
+
+            payload = {
+                "product": {
+                    "id": self.PRODUCT_ID,
+                    "variants": variants,
+                    "options": options,
+                }
+            }
+            response = requests.put(self.url, json=payload, headers=headers)
+            self.set_inventory_metafield(response, 'unfix')
         except Exception as e:
-            print(e)
+            traceback.print_exc()
 
-        response = requests.post(product_url, headers=headers, json=product_data)
-        product = response.json()["product"]
-        product_id = product["id"]
-
-        set_sy.publish_to_all_channels(product_id)
-
-        if response.status_code != 201:
-            print("Product creation failed:", response.text,sale=False)
-            # continue
-
-        self.set_inventory_metafield(response,'unfix')
-
-    def create_fixed(self):
+    def update_fixed(self):
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=False, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
@@ -61,44 +68,54 @@ class CreatePP:
                 return
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P,keep=keep)
-        except Exception as e:
-            print(e)
 
-        response = requests.post(product_url, headers=headers, json=product_data)
-        product = response.json()["product"]
-        product_id = product["id"]
+            existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
+            sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
 
-        set_sy.publish_to_all_channels(product_id,sale=False)
+            variants, options = self.product_post(self.COLOR, P, keep=keep)
+            for v in variants:
+                if v["sku"] in sku_to_id:
+                    v["id"] = sku_to_id[v["sku"]]
 
-        if response.status_code != 201:
-            print("Product creation failed:", response.text)
-            # continue
+            payload = {
+                "product": {
+                    "id": self.PRODUCT_ID,
+                    "variants": variants,
+                    "options": options,
+                }
+            }
+            response = requests.put(self.url, json=payload, headers=headers)
+            self.set_inventory_metafield(response, 'fixed', qty_ne=qty_ne, qty_ba=qty_ba)
 
-        self.set_inventory_metafield(response, 'fixed', qty_ne=qty_ne, qty_ba=qty_ba)
+        except Exception:
+            traceback.print_exc()
 
-    def create_sample(self):
+    def update_sample(self):
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=True, sale=True, sas=False)
             qty_sample = P.get_sample_qty()
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P)
+            existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
+            sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
+
+            variants, options = self.product_post(self.COLOR, P)
+            for v in variants:
+                if v["sku"] in sku_to_id:
+                    v["id"] = sku_to_id[v["sku"]]
+
+            payload = {
+                "product": {
+                    "id": self.PRODUCT_ID,
+                    "variants": variants,
+                    "options": options,
+                }
+            }
+            response = requests.put(self.url, json=payload, headers=headers)
+            self.set_inventory_metafield(response, 'sample', qty_sample=qty_sample)
         except Exception as e:
-            raise print(e)
+            traceback.print_exc()
 
-        response = requests.post(product_url, headers=headers, json=product_data)
-        product = response.json()["product"]
-        product_id = product["id"]
-
-        set_sy.publish_to_all_channels(product_id)
-
-        if response.status_code != 201:
-            print("Product creation failed:", response.text)
-            # continue
-
-        self.set_inventory_metafield(response,'sample', qty_sample=qty_sample)
-
-    def create_sale_stock(self):
+    def update_sale_stock(self):
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=True, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
@@ -111,54 +128,53 @@ class CreatePP:
                 return
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P,keep=keep)
-        except Exception as e:
-            raise print(e)
 
-        response = requests.post(product_url, headers=headers, json=product_data)
-        product = response.json()["product"]
-        product_id = product["id"]
+            existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
+            sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
 
-        set_sy.publish_to_all_channels(product_id)
+            variants, options = self.product_post(self.COLOR, P, keep=keep)
+            for v in variants:
+                if v["sku"] in sku_to_id:
+                    v["id"] = sku_to_id[v["sku"]]
 
-        if response.status_code != 201:
-            print("Product creation failed:", response.text)
-            # continue
+            payload = {
+                "product": {
+                    "id": self.PRODUCT_ID,
+                    "variants": variants,
+                    "options": options,
+                }
+            }
+            response = requests.put(self.url, json=payload, headers=headers)
+            self.set_inventory_metafield(response, 'sale_stock', qty_ne=qty_ne, qty_ba=qty_ba)
 
-        self.set_inventory_metafield(response, 'sale_stock', qty_ne=qty_ne, qty_ba=qty_ba)
+        except Exception:
+            traceback.print_exc()
 
-    def create_o4(self):
+    def update_o4(self):
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=True, sas=True)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P)
+            existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
+            sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
+
+            variants, options = self.product_post(self.COLOR, P)
+            for v in variants:
+                if v["sku"] in sku_to_id:
+                    v["id"] = sku_to_id[v["sku"]]
+
+            payload = {
+                "product": {
+                    "id": self.PRODUCT_ID,
+                    "variants": variants,
+                    "options": options,
+                }
+            }
+            response = requests.put(self.url, json=payload, headers=headers)
+            self.set_inventory_metafield(response, 'o4')
         except Exception as e:
-            raise print(e)
-
-        response = requests.post(product_url, headers=headers, json=product_data)
-        product = response.json()["product"]
-        product_id = product["id"]
-
-        set_sy.publish_to_all_channels(product_id)
-
-        if response.status_code != 201:
-            print("Product creation failed:", response.text)
-            # continue
-
-        self.set_inventory_metafield(response,'O4')
-
-    def product_post(self,P,keep=None):
-        title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
-        print(f"title_page: {title_page}")
-        print(f"sale_title_page: {sale_title_page}")
-        print(f"sale_desc: {sale_desc}")
-        print(f"thread_comp: {thread_comp}")
-
-        page_title, meta_desc, url = P.get_SEL()
-        print(f"page_title: {page_title}")
-        print(f"meta_desc: {meta_desc}")
-        print(f"url: {url}")
-
+            traceback.print_exc()
+    
+    def product_post(self,COLOR,P,keep=None):
         sizes,weights = P.get_weight()
         barcodes, skus = P.get_sku_barcode()
 
@@ -172,26 +188,17 @@ class CreatePP:
         print(f"barcodes: {barcodes}")
         print(f"skus: {skus}")
 
-        metachart = P.get_metachart()
-        print(f"metachart: {metachart}")
-
-        tags = P.get_tags()
-        print(f"tags: {tags}")
-
-        _type = P.get_type()
-        print(f"type: {_type}")
-
         full_price,price = P.get_price()
         print(f"full_price: {full_price}")
         print(f"discounted_price: {full_price}")
-        
+
         variants = []
         print("processing variant")
 
         for i, size in enumerate(sizes):
             variants.append({
             "option1": f"{size} {SIZE_RANGE[size]}",
-            "option2": self.COLOR.title(),
+            "option2": COLOR.title(),
             "sku": skus[i],
             "price": price,
             "compare_at_price": full_price,
@@ -200,7 +207,7 @@ class CreatePP:
             "weight": weights[i],
             "weight_unit": "g",
         })
-
+        
         options = [
         {
             "name": "Size",
@@ -208,46 +215,11 @@ class CreatePP:
         },
         {
             "name": "Color",
-            "values": [self.COLOR.title()]
+            "values": [COLOR.title()]
         }
         ]
-
-        product_data = {
-            "product": {
-                #SEO
-                "handle":url,
-                "metafields_global_title_tag": page_title.replace("/"," "),
-                "metafields_global_description_tag":meta_desc,
-                #header
-                "title": title_page,
-                "body_html":thread_comp,
-                #right side
-                "vendor": "Wooden Ships",
-                "product_type": _type,
-                "tags": tags,
-                "status": "draft",
-                "published_scope": "web",
-
-                "metafields": [
-                    {
-                        "namespace": "avalara",
-                        "key": "taxcode",
-                        "type": "single_line_text_field",
-                        "value": "PC040100"
-                    },
-                        {
-                        "namespace": "custom",
-                        "key": "size_chart_metafield",  
-                        "value": metachart
-                    }
-                ],
-                "variants": variants,
-                "options": options
-            }
-        }
-
-        return product_data
-
+        return variants, options
+            
     def set_inventory_metafield(self,response, production_type, qty_ne=None, qty_ba=None, qty_sample = None):
         data = response.json()
         variants = data["product"]["variants"]
