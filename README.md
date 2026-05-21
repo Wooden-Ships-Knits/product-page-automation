@@ -1,8 +1,8 @@
 # PPA — Product Page Automation
 
-Creates Wooden Ships product pages on Shopify from internal source-of-truth data (IM Master Excel, PPA Google Sheets, Master Data Sheet, UPC list). One style-color goes in, one fully-built product page comes out — title, SEO, variants, size chart, weights, SKUs, barcodes, tags, prices, and per-location inventory.
+Creates and updates Wooden Ships product pages on Shopify from internal source-of-truth data (IM Master Excel, PPA Google Sheets, Master Data Sheet, UPC list). One style-color goes in, one fully-built (or fully-updated) product page comes out — title, SEO, variants, size chart, weights, SKUs, barcodes, tags, prices, and per-location inventory.
 
-For deeper background on inputs and an older redesign sketch, see [PPA_FLOW.md](PPA_FLOW.md) and [PPA_DATA_PREP.md](PPA_DATA_PREP.md). This README documents the **current** active flow in [create_pp.py](create_pp.py) + [fetch_to_product_page.py](fetch_to_product_page.py).
+For deeper background on inputs and the original redesign sketch, see [PPA_FLOW.md](PPA_FLOW.md) and [PPA_DATA_PREP.md](PPA_DATA_PREP.md). This README documents the **current** active flow across [create_pp.py](create_pp.py), [update_pp.py](update_pp.py), [post_update_decision.py](post_update_decision.py), [return_product.py](return_product.py), and [fetch_to_product_page.py](fetch_to_product_page.py).
 
 ---
 
@@ -16,7 +16,7 @@ pip install -r Lrequirements.txt
 
 You also need:
 
-- `Setup/.env` with at least: `CLIENT_ID`, `CLIENT_SECRET` (Shopify), `PPA_SHEET_ID`, `PPA_ID`, `MASTER_DATA_ID`, and the Shopify location IDs `NE_First_Choice_ID`, `NE_Sample_ID`, `Bali_Stock_ID`, `Bali_To_Produce_ID`.
+- `Setup/.env` with at least: `CLIENT_ID`, `CLIENT_SECRET` (Shopify), `PPA_SHEET_ID`, `PPA_ID`, `MASTER_DATA_ID`, `RETURN_ID`, and the Shopify location IDs `NE_First_Choice_ID`, `NE_Sample_ID`, `Bali_Stock_ID`, `Bali_To_Produce_ID`.
 - `credentials/dialy-report-automation-e20c53e67542.json` — Google service-account key (already gitignored).
 - The current season's `Copy of <S26|F26> IM MASTER.xlsx` in the project root.
 
@@ -28,10 +28,13 @@ You also need:
 
 ```
 PPA/
-├── main.py                       Entry point — picks a STYLE/COLOR/SEASON and calls a create_* function
-├── create_pp.py                  The 5 create_* product-type entry points + product_post + set_inventory_metafield
+├── main.py                       Manual single-style entry — picks create vs update via PUD.decide
+├── return_product.py             Bulk entry — iterates the Master Grid of Return sheet and updates
+├── create_pp.py                  CreatePP class — 5 create_* product-type methods + product_post + set_inventory_metafield
+├── update_pp.py                  UpdatePP class — 5 update_* methods mirroring create_pp (PUT instead of POST)
+├── post_update_decision.py       decide() — looks up PP SY LIST to choose create vs update + returns product_id/status
 ├── fetch_to_product_page.py      ProductInfo class — all data fetching/derivation lives here
-├── post_update_decision.py       Looks up whether a product already exists (create vs update)
+├── pp_status.py                  Scratch / WIP (currently just imports)
 ├── deletion_products.py          One-off product cleanup
 ├── config/varia.py               Constants (IM header row, default season)
 ├── Setup/
@@ -47,7 +50,7 @@ PPA/
 
 ## 3. The five production types
 
-All five live in [create_pp.py](create_pp.py). They share the same skeleton — only the `ProductInfo` flags, inventory location, and (now) size filtering differ.
+All five exist in **both** [create_pp.py](create_pp.py) (`CreatePP`) and [update_pp.py](update_pp.py) (`UpdatePP`). They share the same skeleton — only the `ProductInfo` flags, inventory location, and size filtering differ.
 
 | Type         | `sample` | `sale` | `sas` | Sizes                                  | Inventory location(s)                              |
 |--------------|----------|--------|-------|----------------------------------------|----------------------------------------------------|
@@ -61,17 +64,35 @@ The `sample` / `sale` / `sas` flags propagate into pricing, tags, SEO copy, body
 
 ---
 
-## 4. End-to-end flow
+## 4. Create vs update — how the decision is made
 
-Triggered from [main.py](main.py) — it sets `STYLE`, `COLOR`, `SEASON` and calls one of `create_unfix` / `create_fixed` / `create_sample` / `create_sale_stock` / `create_o4`.
+Both [main.py](main.py) and [return_product.py](return_product.py) consult [post_update_decision.py](post_update_decision.py) `decide(STYLE, COLOR, FP_DC)` before doing anything:
+
+- Reads the `PP SY LIST` tab of the PPA sheet.
+- Filters rows whose `Style` and `Color` match (case-insensitive) and whose `FP/DC` column equals `"FP"` or `"DC"`.
+- If **no match** → `create_new=True`; caller routes to `CreatePP`.
+- If a match exists → `create_new=False`, returns the existing `Product ID` and `Page Status` (e.g. `DRAFT` / `ACTIVE`); caller routes to `UpdatePP`.
+
+`FP_DC` mapping (set by the caller):
+
+- `fixed`, `unfix` → `"FP"` (full price product line)
+- `sale_stock`, `sample`, `o4` → `"DC"` (discounted / sale line)
+
+**The current rule is to only act on `DRAFT` products.** `ACTIVE` products are skipped so we never overwrite a live page. This is enforced in both `main.py` and `return_product.py`.
+
+---
+
+## 5. End-to-end flow
+
+### 5a. Create flow
 
 ```
-main.py
+main.py / return_product.py
    │
    ▼
-create_<type>(STYLE, COLOR, SEASON)              ← create_pp.py
+PUD.decide(STYLE, COLOR, FP_DC)  →  create_new=True  →  CreatePP.create_<type>()
    │
-   ├── P = ProductInfo(STYLE, COLOR, SEASON, ...) ← fetch_to_product_page.py
+   ├── P = ProductInfo(STYLE, COLOR, SEASON, sample=..., sale=..., sas=...)
    │
    ├── [fixed / sale_stock only]
    │     qty_ne = P.get_NE_qty()                  ← reads NE STOCK sheet
@@ -109,6 +130,40 @@ create_<type>(STYLE, COLOR, SEASON)              ← create_pp.py
          └── (no return — fire and forget)
 ```
 
+### 5b. Update flow
+
+Mirrors create, except the product already exists. `UpdatePP` is constructed with the existing `PRODUCT_ID` returned by `PUD.decide`.
+
+```
+PUD.decide(STYLE, COLOR, FP_DC)  →  create_new=False  →  UpdatePP.update_<type>()
+   │
+   ├── P = ProductInfo(STYLE, COLOR, SEASON, sample=..., sale=..., sas=...)
+   │
+   ├── [fixed / sale_stock only]   stock filtering, same as create
+   │
+   ├── GET /admin/api/2024-01/products/{id}.json
+   │     └── build sku_to_id = {variant.sku: variant.id}
+   │
+   ├── variants, options = product_post(self.COLOR, P, keep=...)
+   │
+   ├── for each new variant:
+   │       if v["sku"] in sku_to_id: v["id"] = sku_to_id[v["sku"]]   ← keeps Shopify treating it as an update
+   │
+   ├── PUT /admin/api/2024-01/products/{id}.json
+   │     payload = {"product": {"id": ..., "variants": [...], "options": [...]}}
+   │
+   └── set_inventory_metafield(response, type, qty_ne=, qty_ba=)
+         (same per-variant inventory + tax metafield posting as create)
+```
+
+Shopify's PUT semantics handle the reconciliation:
+
+- Variant **with** `id` (SKU matched an existing one) → update in place.
+- Variant **without** `id` (new SKU) → create.
+- Existing variant **omitted** from the array → deleted.
+
+Status, title, description, images, tags, and any other field not included in the PUT body are left untouched, so a `DRAFT` product stays a `DRAFT`.
+
 ### Key derived fields
 
 - **Sizes** are X/S, S/M, M/L, X/L. The `SIZE_RANGE` constant maps each to its body-size label (e.g. `S/M → (6-8)`), used for the Shopify variant option text.
@@ -118,28 +173,29 @@ create_<type>(STYLE, COLOR, SEASON)              ← create_pp.py
 
 ---
 
-## 5. Data sources
+## 6. Data sources
 
 | Source                                  | Used for                                              |
 |-----------------------------------------|-------------------------------------------------------|
 | `Copy of <season> IM MASTER.xlsx`       | Per-size weights, size labels, IM price               |
 | Master Data sheet (`MASTER_DATA_ID`)    | Size chart, XL flag, printed flag, price columns      |
-| PPA sheet (`PPA_SHEET_ID`)              | Color list (generic colors), NE STOCK, BALI STOCK, NE SAMPLE STOCK, PP SY LIST |
+| PPA sheet (`PPA_SHEET_ID`)              | `Color list` (generic colors), `NE STOCK`, `BALI STOCK`, `NE SAMPLE STOCK`, `PP SY LIST` (the create-vs-update lookup) |
 | UPC sheet (`PPA_ID`)                    | `PRODUCTION UPC LIST` / `SAMPLE UPC LIST` (SKUs + barcodes) |
-| Shopify Admin API (`2026-01`)           | Product creation, inventory, metafields, publishing   |
+| Master Grid of Return (`RETURN_ID`)     | Daily worksheet driving `return_product.py` (which styles to update today, FP vs sale flag) |
+| Shopify Admin API (`2024-01` + `2026-01`) | Product create/update, inventory, metafields, publishing |
 
 Sheet reads go through `Setup.setup._get_sheet_values` which caches by `(sheet_id, worksheet, range)` for the life of the process. Excel reads are similarly cached. So inside one run the same sheet is fetched once.
 
 ---
 
-## 6. Inventory & location handling
+## 7. Inventory & location handling
 
-The recent change (May 2026) split this into two cases:
+Split into two cases:
 
 **Real-inventory case (`fixed`, `sale_stock`)**
 
 - Pulls actual qtys from `NE STOCK` and `BALI STOCK` tabs.
-- Filters out sizes where combined qty = 0 — those variants are never created on Shopify.
+- Filters out sizes where combined qty = 0 — those variants are never created on Shopify (and on update, are omitted from the PUT so Shopify deletes them).
 - Posts the **real** per-warehouse qty to each location: NE qty → `NE_First_Choice_ID`, Bali qty → `Bali_Stock_ID`.
 - If every size is zero, the product is skipped entirely with a console message.
 
@@ -152,27 +208,57 @@ The recent change (May 2026) split this into two cases:
 
 ---
 
-## 7. Running
+## 8. Running
+
+### Single style, manual (`main.py`)
+
+Edit the constants at the top of `main.py`:
+
+```python
+STYLE  = "MARINA CREW MERCER".upper()
+COLOR  = "CANTALOUPE".upper()
+SEASON = "26 Spring"
+production_type = "fixed"   # one of: unfix, fixed, sample, sale_stock, o4
+```
+
+Then run:
 
 ```bash
 python main.py
 ```
 
-Edit the constants at the top of `main.py`:
+`main.py` will:
 
-```python
-STYLE  = "Maura Marled Chunky Top Cotton".upper()
-COLOR  = "Ventana Blue/Almond Butter Marl".upper()
-SEASON = "26 Spring"
+1. Map `production_type` → `FP_DC` (FP for unfix/fixed, DC otherwise).
+2. Call `PUD.decide(STYLE, COLOR, FP_DC)`.
+3. If `status == DRAFT`: route to `CreatePP` (new) or `UpdatePP` (existing).
+4. Otherwise print "not found or an active pp. skipping" and exit.
+
+### Bulk, sheet-driven (`return_product.py`)
+
+Reads the Master Grid of Return sheet's daily worksheet (`"21 May, 2026"` style, generated from `date.today()`), filters out rows flagged `ZZ`, and iterates each Style/Color:
+
+- Reads `Added to full price` and `Added to sale` columns. The one marked `x` decides FP vs DC. (Both `x` or neither → logs and skips.)
+- Calls `PUD.decide` to find the existing product page.
+- If the product is `DRAFT` and `FP_DC == "FP"` → would call `U.update_fixed()` (currently commented out).
+- If the product is `DRAFT` and `FP_DC == "DC"` → would call `U.update_sale_stock()` (currently commented out).
+- Active products are logged with "this is an active product, retracting..." and skipped.
+
+```bash
+python return_product.py
 ```
 
-Then change the line at the bottom to whichever `create_*` you want to run. Right now `main.py` is wired for single-product manual runs; bulk runs over a season tab are the next step.
+The whole loop is wrapped in `try/except: traceback.print_exc()` so one bad row doesn't kill the run — but it also means errors are swallowed; check console output.
 
 ---
 
-## 8. Known caveats
+## 9. Known caveats
 
-- **Error handling is permissive.** `create_*` functions wrap `ProductInfo` construction in `try/except` that only `print`s — if it fails, the function still tries to POST `product_data`, which will `NameError`. Don't catch this unless you're ready to rethink the error model end-to-end.
-- **Shopify variant order in the response is trusted** to match creation order for the per-variant inventory loop. Normally true; if you ever see inventory landing on the wrong size, that's the first thing to check.
+- **`return_product.py` update calls are currently commented out** ([return_product.py:60](return_product.py#L60), [return_product.py:64](return_product.py#L64)). Uncomment when you're ready to let the bulk flow actually write to Shopify.
+- **Create-side error handling is permissive.** `CreatePP.create_*` functions wrap `ProductInfo` construction in `try/except` that only `print`s — if it fails, the function still tries to POST `product_data`, which will `NameError`. Don't catch this unless you're ready to rethink the error model end-to-end.
+- **Update-side relies on stable SKUs.** The PUT reconciliation in [update_pp.py](update_pp.py) matches existing variants by SKU. If a SKU changes for a size+color that already exists, Shopify will see "delete old + create new with same option combo" and reject with "Option values are not unique" (422). Keep SKUs stable, or extend the matching to use `option1+option2`.
+- **API version is mixed.** `update_pp.py` uses `2024-01` for product calls and `2026-01` for inventory/metafields. `create_pp.py` uses `2026-01`. Functional but inconsistent.
+- **`set_inventory_metafield` has a silent catch-all.** Any `production_type` not in `('fixed', 'sale_stock', 'sample')` falls into the `Bali_To_Produce_ID` + 5000 branch. `unfix` and `o4` rely on this. A typoed production_type would also silently route there.
+- **Shopify variant order in the response is trusted** to match creation order (and update order) for the per-variant inventory loop. Normally true; if you ever see inventory landing on the wrong size, that's the first thing to check.
 - **`get_BALI_qty` always returns 0 for X/L** (intentional — Bali doesn't carry X/L). A `fixed` product with NE-only X/L stock will correctly post 0 to Bali for that variant.
-- **`post_update_decision.py` is wired but not yet integrated** into the create flow. The intended behaviour is: if the style-color already exists with `FP/DC = DC`, update instead of recreate.
+- **Header-duplication safety in `return_product.py`**: the loop uses a `_first()` helper because the Master Grid of Return sheet can have duplicate column headers — `_first(x)` returns `x.iloc[0]` if `x` is a Series, else `x`. Don't remove unless you've confirmed headers are unique.
