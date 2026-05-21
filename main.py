@@ -12,8 +12,10 @@ production_type = "fixed"
 
 if production_type == 'fixed' or production_type == "unfix":
     FP_DC = "FP"
+    SALE = False
 else:
     FP_DC = "DC"
+    SALE =True
 
 create_new, product_id, status =PUD.decide(STYLE,COLOR,FP_DC)
 
@@ -22,7 +24,7 @@ print(create_new,product_id,status)
 if __name__ == "__main__":
     if status.upper() == "DRAFT":
         if create_new==True:
-            C = create_pp.CreatePP(STYLE,COLOR,SEASON)
+            C = create_pp.CreatePP(STYLE,COLOR,SEASON,SALE)
             if production_type == 'unfix':
                 C.create_unfix()
             elif production_type == 'fixed':
@@ -34,7 +36,7 @@ if __name__ == "__main__":
             elif production_type == 'sample':
                 C.create_sample()
         elif  create_new == False:
-            U = update_pp.UpdatePP(STYLE,COLOR,SEASON,product_id)
+            U = update_pp.UpdatePP(STYLE,COLOR,SEASON,product_id,SALE)
             if production_type == 'unfix':
                 U.update_unfix()
             elif production_type == 'fixed':

@@ -17,10 +17,11 @@ SIZE_RANGE = {
 }
 
 class CreatePP:
-    def __init__(self,STYLE,COLOR,SEASON):
+    def __init__(self,STYLE,COLOR,SEASON,SALE):
         self.STYLE= STYLE
         self.COLOR = COLOR
         self.SEASON = SEASON
+        self.sale = SALE
       
     def _to_int(v):
         try:
@@ -187,7 +188,10 @@ class CreatePP:
         tags = P.get_tags()
         tags,template_suffix= tg.additional_tags(tags,sizes,qty)
         if template_suffix ==None:
-            template_suffix ='default'
+            if self.sale == False:
+                template_suffix ='default'
+            elif self.sale == True:
+                template_suffix = 'sale-item'
         print(f"tags: {tags}")
 
         _type = P.get_type()

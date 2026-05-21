@@ -18,11 +18,12 @@ SIZE_RANGE = {
 }
 
 class UpdatePP:
-    def __init__(self,STYLE,COLOR,SEASON,PRODUCT_ID):
+    def __init__(self,STYLE,COLOR,SEASON,PRODUCT_ID,SALE):
         self.STYLE = STYLE
         self.COLOR = COLOR
         self.SEASON = SEASON
         self.PRODUCT_ID = PRODUCT_ID
+        self.sale = SALE
         self.url = f"https://wooden-ships.myshopify.com/admin/api/2024-01/products/{self.PRODUCT_ID}.json"
 
     def _to_int(self,v):
@@ -210,7 +211,10 @@ class UpdatePP:
         tags = P.get_tags()
         tags,template_suffix = tg.additional_tags(tags,sizes,qty)
         if template_suffix == None:
-            template_suffix ="default"
+            if self.sale == False:
+                template_suffix ="default"
+            elif self.sale == True:
+                template_suffix ="sale-item"
         variants = []
         print("processing variant")
 

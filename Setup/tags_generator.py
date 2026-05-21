@@ -95,7 +95,7 @@ def generate_tags(STYLE, COLOR): #loook for better method
 def additional_tags(tags,sizes,qty):
     if qty==1:
         tags+="LAST ONE LEFT!, "
-        tmp_suffix = None
+        tmp_suffix = "nearly-gone"
     elif qty <6:
         tags+= "NEARLY GONE!, "
         tmp_suffix = "nearly-gone"
