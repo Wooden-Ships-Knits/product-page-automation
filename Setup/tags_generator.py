@@ -46,7 +46,7 @@ def generate_tags(STYLE, COLOR): #loook for better method
         tags +="Long Sleeve, long sleeve, "
 
     #--------------tags size------------------------
-    tags += "FILTERBY-X/S, FILTERBY-S/M, FILTERBY-M/L, FILTERBY-X/L, L/XL, X/L, "
+    # tags += "FILTERBY-X/S, FILTERBY-S/M, FILTERBY-M/L, FILTERBY-X/L, L/XL, X/L, "
 
     #-----------------tags of type sweater----------
     if "HOODIE" in style:
