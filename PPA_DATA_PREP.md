@@ -1,6 +1,6 @@
 # PPA — Data Preparation Checklist
 
-What must exist (and be filled in) so the pipeline can run **fully unattended** for one season.
+What must exist (and be filled in) so [main.py](main.py) (single style) and [return_product.py](return_product.py) (bulk from Master Grid of Return) can run cleanly.
 
 Companion to [PPA_FLOW.md](PPA_FLOW.md) — that doc covers the *logic*, this one covers the *inputs*.
 
@@ -10,20 +10,17 @@ Companion to [PPA_FLOW.md](PPA_FLOW.md) — that doc covers the *logic*, this on
 
 ```mermaid
 flowchart LR
-    DRIVER[Driver sheet<br/>season tab e.g. S26 - TEST2] --> PIPE[Pipeline]
-    MD[Master Data sheet<br/>NE Sample / NE FC / Bali ST5] --> PIPE
-    UPC[SKU/UPC sheet<br/>PRODUCTION + SAMPLE UPC LIST] --> PIPE
-    IMSY[IMSY tags sheet<br/>per-season tab] --> PIPE
-    SSI[Seasonal Style Index sheet<br/>flags + size chart] --> PIPE
-    PFC[PFC color-group sheet<br/>generic color mapping] --> PIPE
-    PRICE[Price sheet<br/>sale + full price] --> PIPE
-    IMX[IM Master xlsx<br/>weights + retail price] --> PIPE
+    PPA[PPA Sheet<br/>PP SY LIST + stock tabs + Color list] --> PIPE[Pipeline]
+    UPC[SKU/UPC Sheet<br/>PRODUCTION + SAMPLE UPC LIST] --> PIPE
+    MD[Master Data Sheet<br/>size chart, XL flag, prices] --> PIPE
+    RET[Master Grid of Return<br/>daily worksheet] --> PIPE
+    IMX[IM Master xlsx<br/>weights] --> PIPE
     SVC[Google service-account JSON] --> PIPE
-    ENV[.env<br/>Shopify CLIENT_ID/SECRET] --> PIPE
+    ENV[.env<br/>Shopify + sheet IDs + location IDs] --> PIPE
     PIPE --> SHOP[Shopify store<br/>collections + locations + templates]
 ```
 
-If any one of these is missing, mis-tabbed, or has wrong headers, the affected branch will silently fall back to empty values / `price=0` / `weight=0` / `tags=None`. The pipeline doesn't fail loudly — **it fails quietly with bad data**. Verify each input below before a season run.
+If any one of these is missing, mis-tabbed, or has wrong headers, **the affected step will silently fall back to empty values / `qty=0` / `barcode=""`**. The pipeline doesn't fail loudly — it fails quietly with bad data, behind a `try / except: traceback.print_exc()`. Verify each input below before a run.
 
 ---
 
@@ -31,244 +28,268 @@ If any one of these is missing, mis-tabbed, or has wrong headers, the affected b
 
 | File | Purpose | Required keys / contents |
 |---|---|---|
-| `.env` | Shopify OAuth credentials | `CLIENT_ID`, `CLIENT_SECRET`, `SPREADSHEET_ID` |
-| `credentials/dialy-report-automation-e20c53e67542.json` | Google service-account JSON used by `gspread` | Standard service-account JSON. The account must be **shared as Editor** on every Google Sheet listed in §2. |
+| `Setup/.env` | All sheet IDs, Shopify credentials, location IDs | See table below |
+| `credentials/dialy-report-automation-e20c53e67542.json` | Google service-account key used by `gspread` and `googleapiclient` | Standard service-account JSON. The account must be **shared as Editor** on every Google Sheet listed in §2. |
+| `Copy of <season> IM MASTER.xlsx` | Per-size weights | Lives in the project root. The current season's file must be present locally. |
 
-Shopify scopes the access token must have: `read_products`, `write_products`, `read_inventory`, `write_inventory`, `read_publications`, `write_publications`, `read_metaobjects`, `write_metaobjects` (because the script POSTs products, sets inventory levels, posts variant metafields, and runs the `publishablePublish` GraphQL mutation).
+`.env`, `credentials/`, and `*.xlsx` are all gitignored.
+
+### `.env` keys actually consumed by the code
+
+| Key | Used by | Notes |
+|---|---|---|
+| `CLIENT_ID` | Shopify OAuth (via `set_sy`) | Custom-app credentials |
+| `CLIENT_SECRET` | Shopify OAuth (via `set_sy`) | Custom-app credentials |
+| `PPA_SHEET_ID` | `PUD.decide` (reads `PP SY LIST`), `main.py` write, `fetch_product_id_new.py` write | The "PPA sheet" with multiple tabs |
+| `SKU_UPC_ID` | `ProductInfo.fetch_barcode`, `ProductInfo.get_sku_barcode`, `fetch_product_id_new.py` | The UPC sheet |
+| `MASTER_DATA_ID` | `ProductInfo.get_metachart`, price lookups | Size chart + XL flag + prices |
+| `RETURN_ID` | `return_product.py` (reads daily worksheet, writes link in column R) | Master Grid of Return |
+| `NE_First_Choice_ID` | `set_inventory_metafield` for `fixed` / `sale_stock` | Shopify location ID |
+| `Bali_Stock_ID` | `set_inventory_metafield` for `fixed` / `sale_stock` | Shopify location ID |
+| `NE_Sample_ID` | `set_inventory_metafield` for `sample` | Shopify location ID |
+| `Bali_To_Produce_ID` | `set_inventory_metafield` for `unfix` / `o4` | Shopify location ID |
+
+Shopify OAuth scopes the access token must have: `read_products`, `write_products`, `read_inventory`, `write_inventory`, `read_publications`, `write_publications`, `read_metaobjects`, `write_metaobjects`.
 
 ---
 
-## 2. Google Sheets (7 sheets)
+## 2. Google Sheets
 
-> All sheet IDs are currently hardcoded inside `all_function_list_underdev.py`. A rewrite should move these to a single config block, ideally `.env`.
+### 2.1 PPA Sheet (`PPA_SHEET_ID`)
 
-### 2.1 Driver sheet — the season tab (the "run list")
-- **Sheet ID:** `1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk` (from `.env` `SPREADSHEET_ID`)
-- **Tab:** named after the run, e.g. `S26 - TEST2` (passed into `bulk_produce(...)`)
-- **One row per product+color to publish.**
-- **Required columns** (consumed by `bulk_produce` / `main_underdev`):
-  - `STYLE` — product name as it appears in master data (e.g. `BERLINI POLO TOP CT`)
-  - `COLOR` — color string, may be slash-separated for multi-color (e.g. `NAVY/IVORY`)
-  - `COLLECTION` — one of: `ESSENTIALS`, `BLOSSOM`, `SAS`, `LAKE`, `BEACH`, `BEACH & LAKE`, `AMERICANA`, `TRANSITION` (case-insensitive; anything else → no collection-release tag)
-  - production-type column (returned as `production_types` from `bulk_produce`), values must be **exactly one of**: `sale sample`, `unfixed inv`, `sale O4`, `sale stock`, `fixed stock`, `fixed inv`
-  - `ACTION` — written back as `PP CREATED` on success
-  - `CHECK` — written back with hyperlink to the created Shopify admin URL on success
-- **Skip logic:** `bulk_produce` is in [pp_status.py](pp_status.py) — currently not present in this folder. The skip/already-processed filter lives there; confirm it doesn't re-process rows already marked `PP CREATED`.
+The primary sheet. Multiple tabs, all read by the pipeline.
 
-### 2.2 Master Data sheet (NE / Bali stock counts)
-- **Sheet ID:** `1u-Nk4CSmBjSFtopVXIsssVPsw9YRZJb2woHP9YLW3j0`
-- **Three tabs** (all must exist; read by `Product._master_data`):
-  - `STOCK NE SAMPLE` — used by `ne_sample()`
-  - `STOCK NE FIRST CHOICE` — used by `ne_first_choice()`
-  - `STOCK BALI ST5` — used by `bali_stocks()`
+#### 2.1.1 `PP SY LIST` — create vs update lookup
+
+- **Used by:** `PUD.decide` (read), `main.py` (write new rows after a successful create)
 - **Header row:** row 1 (data starts row 2)
-- **Required columns (all tabs):** `STYLE`, `COLOR`, `SKU`
-- **NE SAMPLE tab extra column:** `STOCK NE SAMPLE` (integer stock qty)
-- **NE FIRST CHOICE & BALI ST5 extra columns:** `X/S`, `S/M`, `M/L`, `X/L` — integer stock qty per size; **`"0"` is treated as "size not stocked"** and the size is dropped from the variant set
-- ⚠️ The current `bali_stocks()` has the `X/L` block commented out — Bali never contributes X/L. Decide if that's intended before season run.
-- ⚠️ Stock values are read as strings (`!= "0"`) — empty cells, formulas returning `0` (int), or `"0.0"` will behave inconsistently. Keep cells as plain integer-formatted text.
+- **Required columns** (used as filter or write target):
+  - `Style` — substring match against `STYLE` param (case-insensitive)
+  - `Color` — substring match against `COLOR` param (case-insensitive)
+  - `Product ID` — Shopify numeric ID; `main.py` writes this after a successful create
+  - `Page Status` — must contain `"DRAFT"` for the pipeline to act; anything else is skipped
+  - `FP/DC` — exact match (`"FP"` or `"DC"`)
+- **`main.py` writes** new rows starting at column A of the first row where `Style` is empty: `[STYLE, COLOR, product_id, "DRAFT", FP_DC]`. Column order must match the sheet's column order.
+- ⚠️ **`Page Status` is a stale snapshot.** It's only refreshed by running `fetch_product_id_new.py`. Between snapshots, a Shopify product can drift DRAFT → ACTIVE without the sheet knowing. If `PP SY LIST` says DRAFT but Shopify says ACTIVE, the update will overwrite a live product.
+- ⚠️ `PUD.decide` uses `str.contains` (substring + regex). If two styles share a prefix (`"EMORY TIPPED"` vs `"EMORY TIPPED L/S"`), the lookup may grab the wrong row. Keep style names disambiguated, or change the matcher to exact equality.
 
-### 2.3 SKU / UPC sheet (barcodes + unfixed-inventory size list)
-- **Sheet ID:** `1k-gCMaXqDtzROFUbIX3DFnA_MpzK__8eDDWlkRLhnCc`
+#### 2.1.2 `NE STOCK` — NE warehouse stock + SKUs (per size)
+
+- **Used by:** `ProductInfo.get_NE_qty` (returns `(qty, skus)` per size)
+- **Required columns:**
+  - `style` — substring filter against `self.style`
+  - `color` — substring filter against `self.color`
+  - `style_code` — used to build SKU stem: `<style_code>-<color>-<size>`
+  - `X/S`, `S/M`, `M/L`, `X/L` — integer stock qty per size
+- **Behavior:**
+  - Returns `qty_ne = [X/S, S/M, M/L, X/L]` and `skus = ["<stem>-X/S", "<stem>-S/M", "<stem>-M/L", "<stem>-X/L"]`
+  - If the filter yields **no rows**, returns `([0,0,0,0], ["","","",""])` (short-circuit; no crash).
+- ⚠️ **The SKU returned is constructed from `style_code` + `color`, not read from a separate SKU column.** If `style_code` is mistyped or `color` is in a different format than the UPC list expects, `fetch_barcode` will fail to find a match → empty barcode.
+
+#### 2.1.3 `BALI STOCK` — Bali warehouse stock + SKUs
+
+- **Used by:** `ProductInfo.get_BALI_qty` (returns `(qty, skus)` per size)
+- **Same columns as `NE STOCK`**, but:
+  - **`X/L` is hardcoded to 0** in the return — Bali doesn't carry X/L sizes (by design)
+  - Empty match → `([0,0,0,0], ["","","",""])`
+- Used as a per-size fallback when `NE STOCK`'s SKU is blank for that size:
+  ```python
+  skus_chosen[i] = skus_ne[i] if str(skus_ne[i]).strip() else skus_ba[i]
+  ```
+
+#### 2.1.4 `NE SAMPLE STOCK` — sample inventory
+
+- **Used by:** `ProductInfo.get_sample_qty` (returns a 1-element list)
+- Callers must do `qty_sample[0]` before passing to `set_inventory_metafield`.
+
+#### 2.1.5 `Color list` — brand color → generic color mapping
+
+- **Used by:** `Setup/generic_color_generator.py`
+- Brand color (e.g. `"Ventana Blue"`) → generic family (`"Blue"`, `"Pink"`, etc.) for SEO + tag generation.
+- **Side-effect:** if a brand color is not present, the generator calls GPT to propose one and **writes the new entry back to the sheet** for next time. This is the only undocumented sheet write that happens during a `create_*` call.
+
+### 2.2 SKU / UPC Sheet (`SKU_UPC_ID`)
+
+- **Used by:** `ProductInfo.get_sku_barcode` (default SKU + barcode), `ProductInfo.fetch_barcode` (lookup by SKU)
 - **Two tabs:**
-  - `PRODUCTION UPC LIST` — used by `unfix()` (header row 6 / data row 7+) and by `get_barcodes(sample=False)`
-  - `SAMPLE UPC LIST` — used by `get_barcodes(sample=True)` (header row 5 / data row 6+)
-- **Required columns:** `Product Name`, `Lineitem sku`, `UPC Barcode`
-- **SKU format expectation:** `<code>-<color>-<size>` where size is the last `-` segment (`X/S`, `S/M`, `M/L`, `X/L`). If the SKU is malformed the size sort/merge breaks silently.
-- **Barcodes must be populated for every SKU you intend to publish.** If a barcode is missing for any SKU in a multi-size product, the whole product falls back to `[0,0,0,0]` and ships with empty barcodes.
-
-### 2.4 IMSY sheet (pre-built tags string)
-- **Sheet ID:** `1W5JJiunUbEZVv-vxUfEXgdVxw4wvrjayXwRz2VIkIQY`
-- **Tab:** named exactly as the `season` parameter (e.g. `S26`)
-- **Range read:** `A:CW` (header row 5, data row 6+)
-- **Required columns:** `DESCRIPTION`, `COLOR`, `ALL SUMMARY FOR CSV`
-- The `ALL SUMMARY FOR CSV` column is the **preformatted comma-separated tag string** for the product. If a product+color has no row here, `tags=None` and the pipeline falls back entirely to the design/keyword tag generator (the "additional_tags" block). That fallback is incomplete — missing IMSY rows = noticeably weaker SEO tags.
-
-### 2.5 Seasonal Style Index sheet ("SSI" — size chart + design flags)
-- **Sheet ID:** `1esbj3SiVjMGgdoBCnV75z3UircVUXj_gUR64BPpRPgU`
-- **Tab:** worksheet **index 6** (the 7th tab) — used by both `get_tags()` and `get_meta_chart()`
-- **Headers are 3 stacked rows (3, 4, 5)** forward-filled and joined with ` | `
+  - `PRODUCTION UPC LIST` — primary lookup for both default barcodes and `fetch_barcode`
+  - `SAMPLE UPC LIST` — used by `get_sku_barcode` when `sample=True`
 - **Required columns:**
-  - `FROM IM | DESCRIPTION`, `FROM IM | COLOR` (lookup keys)
-  - `DEV | GRADED (incl XL if XL is applicable) | (Y/N)` — controls whether size chart has 3 rows or 4
-  - `WEB | PRINTED | (Y/N)`, `WEB | BOYFRIEND | (Y/N)`, `WEB | UPDATED | CROPPED (Y/N)`, `WEB | ORIGINAL | CROPPED (Y/N)`
-  - All `... | UPDATED SIZE (CM) | ... | Width` and `... | Length` columns (per size: X/S, S/M, M/L, X/L)
-  - All `... | ORIGINAL SIZE | ... | Width` and `... | Length` columns (fallback when UPDATED is empty)
-- **If the row exists but Width/Length cells are blank for a size**, the size chart renders that row as `-` — which is visible to the customer. Fill these in before publishing.
-- ⚠️ The "tab index 6" is fragile — if anyone reorders tabs in this sheet, the script silently reads the wrong tab. Pin by name in the rewrite.
+  - `Lineitem sku` — the SKU string (must exactly match the SKU constructed in NE/BALI STOCK for `fetch_barcode` to find it)
+  - `UPC Barcode` — the barcode value posted to Shopify's variant `barcode` field
+- `fetch_barcode` normalizes SKUs (`.strip().upper()`) before lookup, so case + whitespace are tolerated.
+- ⚠️ If a SKU isn't in `PRODUCTION UPC LIST`, `fetch_barcode` returns `""` and the variant ships with no barcode. Shopify accepts this silently.
 
-### 2.6 PFC color-group sheet (generic color name mapping)
-- **Sheet ID:** `1foCvn9twfZ-ucvL0LDoQFv-Yor2fDxxxGXMLxS7XQCc`
-- **Two tabs used (current code):**
-  - `S25 - COLOR GROUP` — used when season starts with `S` (range `A:E`, header row 5)
-    - Required columns: `S25 COLORS`, `COLOR CATEGORY 1`
-  - `F24 - COLOR GROUP` — used when season starts with `F`, or as fallback when an S color isn't found (range `A:C`, header row 1)
-    - Required columns: `F24 COLOR`, `COLOR CATEGORY 1`
-- Maps raw color names (e.g. `"NAVY"`, `"DUSTY ROSE"`) to a generic family (`"Blue"`, `"Pink"`) used in SEO title/desc and color tags.
-- ⚠️ Current code hardcodes `S25` and `F24` tab names regardless of the actual season. **For S26 you should either rename the tab or update the code** — otherwise S26 colors will only resolve if they happen to match a S25 entry.
+### 2.3 Master Data Sheet (`MASTER_DATA_ID`)
 
-### 2.7 Price sheet (sale price + compare-at price)
-- **Sheet ID:** `16GWane0VWG5Usuk9iXk8-_DzPcCOsRHfi_eMnyupUao`
-- **Tab:** `2026 - BEACH & LAKE` (hardcoded — must be changed for other collections/seasons)
-- **Header row:** row 11 (data row 12+)
+- **Used by:** `ProductInfo.get_metachart` (size chart HTML), price columns, XL flag
+- **Required columns** (consulted, not exhaustive):
+  - `DEV | XL | (Y/N)` — toggles whether the size chart includes X/L
+  - Width / Length per size — populates the size chart cells
+  - Various price columns — fallback chain for `P.get_price()`
+- The size chart **always renders the master-data sizes**, not the filtered keep-sizes, by design (the chart is a reference, not a stock listing).
+
+### 2.4 Master Grid of Return (`RETURN_ID`)
+
+- **Used by:** `return_product.py` (read daily worksheet, write link to column R)
+- **Worksheet name:** today's date formatted as `"%d %B, %Y"` (e.g. `"21 May, 2026"`). Generated from `date.today()`.
+- **Header row:** row 6 (data starts row 7)
 - **Required columns:**
-  - `STYLE`, `COLOR` (lookup keys, exact match casefold)
-  - `PB ADJUSTED SALE PRICE ON FEB 26` — primary sale price
-  - `LATEST SALE PRICE` — fallback if PB adjusted is empty or `N/A`
-  - `PB ADJUSTED FULL PRICE` — primary compare-at price
-  - `LATEST FULL PRICE` — fallback if PB adjusted is empty
-- Prices may include `$` and `,` — those are stripped. Empty / `N/A` → product gets price `0` and is created in draft.
-- ⚠️ Lookup uses **exact** STYLE+COLOR match (casefold), unlike most other sheets that use substring `str.contains`. Watch for whitespace / trailing characters.
-
-### 2.8 *(Currently unused at read-time but referenced)*: `Yarn_Warehouse_ID`, `Jillamy_WBPA_ID`
-- Defined as Shopify location IDs in `create_product_underdev.py` but no current code path writes inventory to them. Safe to leave; flag if a new branch needs them.
+  - `Style`, `Color` — passed to `PUD.decide`
+  - `Added to full price`, `Added to sale` — values `"x"` (case-insensitive) decide FP vs DC:
+    - FP marked, DC blank → `FP_DC="FP"`, `SALE=False` → `U.update_fixed()`
+    - DC marked, FP blank → `FP_DC="DC"`, `SALE=True` → `U.update_sale_stock()`
+    - Both `x` → log + skip
+    - Neither → log + skip
+  - Any column with `"ZZ"` in its header — used as an exclusion filter. Rows where any such column equals `"ZZ"` are dropped entirely from the iteration.
+  - **Column R** — the destination cell where each row's Shopify admin link is written after a successful update.
+- ⚠️ The Master Grid sheet can have **duplicate column headers**; `return_product.py` uses a `_first()` helper to handle that: `_first(x)` returns `x.iloc[0]` if `x` is a Series, else `x`. Don't remove it.
+- ⚠️ Column `R` is hardcoded. Verify it's actually the link column in your Master Grid before a run.
 
 ---
 
-## 3. Local Excel files (IM Master — weights & retail price)
+## 3. Local Excel file — IM Master (`Copy of <season> IM MASTER.xlsx`)
 
-The script reads from a Google-Drive-synced local folder under `/Users/ptinfashion/...`. **The user account running the script must have these files synced locally.**
-
-| File | Used by | Header row | Required columns |
-|---|---|---|---|
-| `…/PTIF SERVER/Collection/26 SPRING/IM/S26 IM MASTER.xlsx` | `get_weight()`, `get_weight_multiple()`, `get_fullprice()` | 56 | `DESCRIPTION`, `WS TAG COLOR`, `PRE COMPONENT WT (PC WT)`, `FINAL RETAIL PRICE` |
-| `…/PTIF SERVER/Collection/25 FALL/IM/F25 IM MASTER.xlsx` | fallback when S26 lookup is empty | 56 or 60 | Same as above, plus a multi-line `WS TAG COLOR\n(Note - Tag color untuk style striped hanya STRIPE tanpa D)` variant |
-
-Notes:
-- Weight column is in **kg**, the script multiplies by 1000 → grams.
-- `DESCRIPTION` rows must contain the size code (`S/M`, `M/L`, …) so the per-size weight lookup works.
-- ⚠️ Path is hardcoded to the `ptinfashion` user. Running as a different user (e.g. `woodenship`) breaks `get_weight*` and `get_fullprice` silently — they return `None` / `0`. The rewrite should resolve paths relative to a configurable Drive root.
+- **Used by:** `ProductInfo.get_weight` (per-variant weight), some price fallbacks
+- **Location:** project root (alongside `main.py`)
+- **Header row:** see `config/varia.py` for the configured row index
+- **Required columns:**
+  - `DESCRIPTION` — substring filter against STYLE; also must contain the size code (`S/M`, `M/L`, …) for the per-size weight lookup
+  - `WS TAG COLOR` — filter against COLOR
+  - `PRE COMPONENT WT (PC WT)` — weight in **kg** (multiplied by 1000 → grams for Shopify)
+  - Other columns may be used for full-price fallback
+- ⚠️ The script reads the xlsx from `Path(__file__).parent`. If the file isn't synced locally to the user running the script, weight will be `0` / `None` silently.
+- ⚠️ Per-season filename change. For `26 Spring` the file is `Copy of S26 IM MASTER.xlsx`. For `26 Fall` it would be `Copy of F26 IM MASTER.xlsx`. Confirm the file exists before a run.
 
 ---
 
 ## 4. Shopify-side prerequisites
 
-These are configured **inside the Shopify store**, not in a file. They must exist before the first run.
+These are configured **inside the Shopify store**, not in a file.
 
-### 4.1 Inventory locations (IDs hardcoded in `create_product_underdev.py`)
-| Constant | ID | Used by |
-|---|---|---|
-| `Bali_Stock_ID` | `35472048176` | `create_fixed` (sale stock + fixed stock) |
-| `Bali_To_Produce_ID` | `37977930` | `create_unfix` (qty 5000) |
-| `Jillamy_WBPA_ID` | `14627995696` | (unused currently) |
-| `NE_First_Choice_ID` | `65178107952` | `create_fixed` (sale stock + fixed stock) |
-| `NE_Sample_ID` | `65218150448` | `create_sale_sample`, `create_04` |
-| `Yarn_Warehouse_ID` | `36831821872` | (unused currently) |
+### 4.1 Inventory location IDs
 
-Verify each ID still exists in the store: `GET /admin/api/2026-01/locations.json`.
+All four must exist in the store and their numeric IDs must be set in `.env`:
 
-### 4.2 Collections (titles must exist in store)
-`set_sy.collection_release` does collection-add by *looking up custom collections by title*. The following titles **must exist** as custom collections in Shopify:
-- `tax:clothing` (added to every product)
-- `BEACH + LAKE` (when row's COLLECTION is `LAKE`, `BEACH`, or `BEACH & LAKE` — note the `+` vs `&`)
-- *(Other COLLECTION values aren't currently mapped to a Shopify collection — only the tag is set.)*
+| Env var | Used by |
+|---|---|
+| `NE_First_Choice_ID` | `fixed` + `sale_stock` (NE qty) |
+| `Bali_Stock_ID` | `fixed` + `sale_stock` (Bali qty) |
+| `NE_Sample_ID` | `sample` (qty 5000 placeholder) |
+| `Bali_To_Produce_ID` | `unfix` + `o4` (qty 5000 placeholder) |
 
-⚠️ Read carefully: `collection_release` only assigns to `BEACH + LAKE` and `tax:clothing`. Despite the per-collection tag logic in `get_tags()`, **other collection names (ESSENTIALS, BLOSSOM, AMERICANA, SAS) do NOT get an automatic Shopify-collection assignment**. If you want auto-assignment, extend `collection_release` first.
+Verify each still resolves: `GET /admin/api/2026-01/locations.json`.
 
-### 4.3 Theme templates
-The theme must publish two product templates:
-- `default` (used for `fixed stock` / `fixed inv` / `unfixed inv`)
-- `sale-item` (used for `sale sample`, `sale O4`, `sale stock`)
+### 4.2 Theme templates
 
-If `sale-item` doesn't exist in the live theme, Shopify will accept the product but fall back to default rendering — meaning sale items won't render with sale styling.
+The active theme must publish both product templates:
 
-### 4.4 Publication channels
-`publish_to_all_channels` queries `publications(first: 20)` and publishes to every one returned. **All channels active in the store get the new product.** If you want some channels excluded, edit the GraphQL filter — don't try to suppress them after the fact.
+- `default` — used when `template_suffix` resolves to `'default'` (full-price products)
+- `sale-item` — used when `template_suffix` resolves to `'sale-item'` (sale products)
 
-### 4.5 Tax code metafield
+`tg.additional_tags` returns a suggested `template_suffix`; if it returns `None`, the fallback is `'sale-item' if SALE else 'default'`. If `sale-item` doesn't exist in the live theme, Shopify accepts the product but falls back to default rendering — meaning sale items won't render with sale styling.
+
+### 4.3 Publication channels
+
+`set_sy.publish_to_all_channels(product_id, sale=...)`:
+
+- `sale=False` → publish to **every** sales channel returned by `publications(first: 20)`.
+- `sale=True` → publish to every channel **except Pinterest**.
+
+If you want different channel handling, edit the GraphQL filter in [Setup/set_sy.py](Setup/set_sy.py).
+
+### 4.4 Tax code metafield
+
 - Namespace: `avalara`, key: `taxcode`, value: `PC040100`
-- Set at both the product level and per-variant level
-- No prerequisite definition needed (Shopify auto-creates the metafield on first write)
+- Set at the product level (in the create payload) and per-variant level (after creation, in `set_inventory_metafield`).
+- No prerequisite metafield definition needed — Shopify auto-creates on first write.
+- ⚠️ Every update re-POSTs the per-variant metafield. Shopify usually dedupes by `(owner_id, namespace, key)`, but if you see duplicate `avalara.taxcode` metafields on a variant in the admin, the dedup isn't holding and the create-or-update should be switched to GraphQL `metafieldsSet`.
 
 ---
 
 ## 5. Per-row data quality rules
 
-For one row in the driver sheet to produce a clean published product, **every dependent lookup must hit a matching row**. Lookups use **case-insensitive `str.contains`** unless noted.
+For one row in the Master Grid of Return (or one style targeted by main.py) to produce a clean update, **every dependent lookup must hit a matching row**.
 
 | Lookup | Match keys | Sheet/file | Failure mode |
 |---|---|---|---|
-| Master stock | `STYLE` contains row STYLE, `COLOR` contains row COLOR | Master Data tabs | `filtered.empty` → branch returns `None` → no variants from that source |
-| Unfix sizes/barcodes | `Product Name` contains STYLE, `Lineitem sku` contains COLOR | UPC PRODUCTION | `filtered.empty` → branch returns `None` → product has no variants |
-| Sample barcodes | `Lineitem sku` contains SKU | UPC SAMPLE | Exception → all barcodes set to `[0,0,0,0]` |
-| IMSY tags | `DESCRIPTION` contains STYLE, `COLOR` contains COLOR | IMSY (season tab) | `tags=None` → fallback to weaker keyword tags |
-| SSI flags + size chart | `FROM IM | DESCRIPTION` contains STYLE, `FROM IM | COLOR` contains COLOR | SSI (tab index 6) | `filtered.empty` → no design-flag tags, `metafield=" "` (empty size chart) |
-| PFC generic color | `S25 COLORS` / `F24 COLOR` **exact casefold equals** color1 (and color2, color3 split by `/`) | PFC | Falls back to F24 tab; if still empty, `get_seo` returns `None` (whole product skipped) |
-| Price (sale) | `STYLE` **exact casefold equals** STYLE, `COLOR` **exact casefold equals** COLOR | Price sheet | Empty → price=0, compare_at=0 (product created in draft with $0) |
-| Full price | `DESCRIPTION` contains STYLE, `WS TAG COLOR` contains COLOR | IM Master xlsx | Empty → price=0 |
-| Weight | Same as full price, plus `DESCRIPTION` contains size code | IM Master xlsx | Empty → weight=0 per missing size, `old_product=True` flag set |
+| Decide create vs update | `Style` substring, `Color` substring, `FP/DC` exact | `PPA_SHEET_ID` → `PP SY LIST` | No row → `create_new=True, status="DRAFT"` (forced) → create branch |
+| NE qty + SKU | `style` substring, `color` substring | `PPA_SHEET_ID` → `NE STOCK` | Empty → `([0,0,0,0], ["","","",""])` |
+| Bali qty + SKU | `style` substring, `color` substring | `PPA_SHEET_ID` → `BALI STOCK` | Empty → `([0,0,0,0], ["","","",""])`. Together with NE empty → `keep=[]` → "No stock" skip |
+| Barcode by SKU | Exact normalized SKU | `SKU_UPC_ID` → `PRODUCTION UPC LIST` | Missing → barcode = `""` |
+| Default SKU + barcode (unfix/sample/o4) | Positional | `SKU_UPC_ID` → `PRODUCTION UPC LIST` / `SAMPLE UPC LIST` | Missing → variant gets empty SKU/barcode |
+| Size chart | `Style`, `Color` | `MASTER_DATA_ID` | Empty → blank cells / `-` placeholders rendered |
+| Generic color | Brand color → generic | `PPA_SHEET_ID` → `Color list` | Missing → GPT proposes + writes back |
+| Weight | STYLE + COLOR + size code | IM Master xlsx | Missing → weight = 0 silently |
 
-**Practical rule of thumb:** for each row in the driver sheet, before you press play, confirm the (STYLE, COLOR) pair appears in:
-1. Master Data (whichever stock tab applies to your `ptype`),
-2. UPC PRODUCTION / SAMPLE,
-3. IMSY (season tab),
-4. SSI (tab index 6),
-5. PFC color group (S/F tab matching season letter),
-6. Price sheet *(only if `ptype` is a sale type)*,
-7. IM Master xlsx for the season.
+**Pre-run rule of thumb:** for each row before pressing play, confirm the `(STYLE, COLOR)` pair appears in:
 
-A simple pre-flight script that checks all 7 lookups and produces a "missing data" report per row would prevent ~all silent-bad-data failures.
+1. `NE STOCK` and/or `BALI STOCK` (at least one must have non-zero qty for fixed / sale_stock to proceed)
+2. `PRODUCTION UPC LIST` with a non-empty `UPC Barcode` for every NE SKU you expect to ship
+3. `MASTER_DATA_ID` (for the size chart)
+4. `Color list` (or accept that GPT will write a new entry)
+5. IM Master xlsx (for weights)
+6. `PP SY LIST` if you want it to be an update; absent → create
 
 ---
 
 ## 6. Per-season tweaks (what changes when starting `S27`, `F26`, …)
 
-Today these are scattered as hardcoded literals. List them so a season-start checklist is possible:
-
-| Where | What | New value for next season |
+| Where | What | Action |
 |---|---|---|
-| `main_underdev.py` | `season = "S26"` | Update season code |
-| `main_underdev.py` | `bulk_produce("S26 - TEST2")` | Update driver tab name |
-| `all_function_list_underdev.py` `_master_data(...)` | Tabs `STOCK NE SAMPLE` etc. are season-agnostic (presumably) | Verify still correct |
-| `all_function_list_underdev.py` `get_tags()` | `IMSY` `worksheet_name=self.season` | Auto-resolves — good ✅ |
-| `all_function_list_underdev.py` `get_tags()` & `get_seo()` | PFC tab `S25 - COLOR GROUP` / `F24 - COLOR GROUP` hardcoded | Should derive from `self.season` |
-| `all_function_list_underdev.py` `get_weight*` / `get_fullprice` | IM Master path `26 SPRING/S26 IM MASTER.xlsx` | Update path or derive from `self.season` |
-| `all_function_list_underdev.py` `get_price()` | Price tab `2026 - BEACH & LAKE` | Update tab name |
-| `all_function_list_underdev.py` `get_tags()` | Collection release tags: `ESS 2026 release`, `BLSSM 2026 release`, `BCHLK release 2026`, `MRCN 2026` | Update year strings |
-| `all_function_list_underdev.py` `get_tags()` | `BOGO 50% OFF, SAS FEB 2026,` | Update SAS sale label |
-| `set_sy.collection_release` | Hardcoded `BEACH + LAKE` mapping | Confirm collection still exists in new season |
+| `main.py` | `SEASON = "26 Spring"` constant | Update to new season string |
+| Project root | `Copy of S26 IM MASTER.xlsx` | Add the new season's file; remove or archive old one |
+| `config/varia.py` | Default `SEASON`, IM header row | Confirm header row didn't shift |
+| `MASTER_DATA_ID` data | New season rows | Make sure every style+color this season has rows in master data, with size chart cells populated |
+| `PPA_SHEET_ID` → `NE STOCK` / `BALI STOCK` | New season rows + stock counts | Updated by stock team |
+| `PPA_SHEET_ID` → `Color list` | New colors | Add manually or let GPT write them on first reference |
+| `SKU_UPC_ID` → `PRODUCTION UPC LIST` | New SKUs + barcodes for the season | Critical — empty `UPC Barcode` cells = empty barcodes on Shopify |
+| `RETURN_ID` | A daily worksheet matching `date.today().strftime("%d %B, %Y")` must exist before `return_product.py` runs | Ops creates the daily tab |
 
-The rewrite should turn each of these into a single `SeasonConfig` object so a new season is a 1-place change.
+There's no single `SeasonConfig` object yet — these are scattered. A consolidation would be a useful refactor.
 
 ---
 
 ## 7. Naming-convention contracts (parser depends on these)
 
-The `Product` class parses substrings from `STYLE` and `COLOR` strings to make decisions. Anyone naming new styles must respect these conventions or the parser silently misclassifies.
+`ProductInfo` parses substrings from `STYLE` and `COLOR` to derive product type, tags, fabric category, etc.
 
-### STYLE string (split on space, last-token-first analysis)
-- Last token determines **product type**: `V` → V-neck, `CREW` → Crewneck, `CARDI` / `CARDIGAN` → Cardigan, `HOODIE` → Hoodie, `TOP` → look at second-to-last (`POLO` → Collar, else Crewneck)
-- Second-to-last token + last token combos drive tag generation: `POLO TOP`, `HALF SLEEVE`, etc.
+### STYLE string (last-token-first analysis)
+
+- Last token drives **product type**: `V`, `CREW`, `CARDI` / `CARDIGAN`, `HOODIE`, `TOP` (`POLO TOP` → Collar, else Crewneck)
 - Substring tokens trigger fabric/style tags: `COTTON`, `MERCER`, `CHUNKY`, `LIGHTWEIGHT`, `CABLE`, `STRIPE`, `MARLED` / `MARL`, `HEATHERED`, `3/4`, `TEE`, `SLEEVELESS`, `HALF SLEEVE`, `ZIP`
-- Composition text branches on whether the last STYLE token is `COTTON` or `MERCER` (cotton/acrylic blend vs wool/mohair/acrylic blend)
+- Composition text branches on last token: `COTTON` vs `MERCER` blends differ
 
 ### COLOR string
-- Multi-color colors are slash-separated, up to 3 colors: `COLOR1/COLOR2/COLOR3`
-- Modifier suffixes recognized for color1/2/3: `HEATHER`, `STRIPE`, `MARL` — the last token is extracted as `extra1/2/3` and removed before generic-color lookup
-- The PFC lookup is **exact match casefold** on the cleaned color name → typos / extra spaces here = no generic color = whole product skipped (because `get_seo()` returns `None`)
 
-### COLLECTION string (driver sheet)
-Recognized values (case-insensitive): `ESSENTIALS`, `BLOSSOM`, `SAS`, `LAKE`, `BEACH`, `BEACH & LAKE`, `AMERICANA`, `TRANSITION`. Anything else → no collection-release tag.
+- Multi-color colors are slash-separated, up to 3 colors: `COLOR1/COLOR2/COLOR3`
+- Modifier suffixes recognized: `HEATHER`, `STRIPE`, `MARL` — extracted and removed before generic-color lookup
+- `Color list` lookup is exact-match (case-insensitive after cleanup) — extra spaces or typos = no generic color = weaker SEO
+
+### FP_DC mapping (driven by production_type or sheet column)
+
+| production_type | FP_DC | SALE |
+|---|---|---|
+| `unfix`, `fixed` | `FP` | `False` |
+| `sale_stock`, `sample`, `o4` | `DC` | `True` |
 
 ---
 
-## 8. Pre-flight checklist (paste-ready for season runs)
+## 8. Pre-flight checklist
 
-Before pressing play on a new season's bulk run, confirm:
+Before running:
 
-- [ ] `.env` has valid Shopify `CLIENT_ID` / `CLIENT_SECRET` and correct driver `SPREADSHEET_ID`
-- [ ] Service-account JSON is in `credentials/` and the account is shared as Editor on **all 7 Google Sheets** in §2
-- [ ] Driver sheet's season tab is populated with `STYLE`, `COLOR`, `COLLECTION`, production-type column; `ACTION` and `CHECK` columns exist and are empty for rows to be processed
-- [ ] Each row's (STYLE, COLOR) appears in Master Data (matching stock tab for its `ptype`)
-- [ ] Each row's (STYLE, COLOR) appears in UPC PRODUCTION (or SAMPLE for `sale sample`) with non-empty `UPC Barcode`
-- [ ] IMSY has a season tab matching `season` literal, with a row per (STYLE, COLOR) and `ALL SUMMARY FOR CSV` filled
-- [ ] SSI tab index 6 has a row per (STYLE, COLOR) with `DEV | GRADED ...` set to `Y` or `N` and UPDATED-or-ORIGINAL Width/Length filled per size
-- [ ] PFC tab matching season letter contains every color1/2/3 referenced (exact match)
-- [ ] Price sheet has every sale row populated (`PB ADJUSTED SALE PRICE` or `LATEST SALE PRICE` non-empty; `PB ADJUSTED FULL PRICE` or `LATEST FULL PRICE` non-empty)
-- [ ] IM Master xlsx for the season is synced locally at the hardcoded path, with `DESCRIPTION`, `WS TAG COLOR`, `PRE COMPONENT WT (PC WT)`, `FINAL RETAIL PRICE` filled
-- [ ] All 6 Shopify location IDs in §4.1 still resolve (`GET /locations.json`)
-- [ ] Shopify custom collections `tax:clothing` and `BEACH + LAKE` exist
-- [ ] Theme templates `default` and `sale-item` both exist on the published theme
-- [ ] All "per-season tweaks" in §6 have been updated (or — better — the rewrite is in and a `SeasonConfig` is set)
+- [ ] `Setup/.env` has all 11 keys from §1
+- [ ] `credentials/dialy-report-automation-e20c53e67542.json` is present and the service account is shared as Editor on the PPA Sheet, SKU/UPC Sheet, Master Data Sheet, and Master Grid of Return
+- [ ] Project root has `Copy of <season> IM MASTER.xlsx`
+- [ ] `(STYLE, COLOR)` appears in either `NE STOCK` or `BALI STOCK` (for fixed/sale_stock)
+- [ ] Every NE SKU expected to ship has a row in `PRODUCTION UPC LIST` with non-empty `UPC Barcode`
+- [ ] Brand color is in `Color list` (or you're OK letting GPT write it)
+- [ ] Size chart cells in `MASTER_DATA_ID` are populated for the size set you expect
+- [ ] IM Master xlsx has rows for `(STYLE, COLOR)` with `PRE COMPONENT WT` filled per size
+- [ ] All 4 Shopify location IDs in `.env` still resolve (`GET /locations.json`)
+- [ ] Active theme has both `default` and `sale-item` templates
+- [ ] (For bulk run) Master Grid of Return has a daily worksheet named `date.today().strftime("%d %B, %Y")`
+- [ ] (For bulk run) Column `R` on that worksheet is the link/result column
 
-If all checks pass, the pipeline should be fully unattended.
+If all checks pass, the pipeline should run cleanly.
