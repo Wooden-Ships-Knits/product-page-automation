@@ -75,8 +75,13 @@ Both [main.py](main.py) and [return_product.py](return_product.py) consult [post
 
 `FP_DC` mapping (set by the caller):
 
-- `fixed`, `unfix` → `"FP"` (full price product line)
-- `sale_stock`, `sample`, `o4` → `"DC"` (discounted / sale line)
+- `fixed`, `unfix` → `"FP"` (full price product line) → `SALE=False`
+- `sale_stock`, `sample`, `o4` → `"DC"` (discounted / sale line) → `SALE=True`
+
+The caller also sets a `SALE` boolean alongside `FP_DC` and passes it into both `CreatePP(STYLE, COLOR, SEASON, SALE)` and `UpdatePP(STYLE, COLOR, SEASON, PRODUCT_ID, SALE)`. This boolean drives:
+
+- `template_suffix` selection in `product_post` — `'sale-item'` when `SALE=True`, `'default'` when `SALE=False` (only used as fallback when `tags_generator.additional_tags` doesn't return its own suffix).
+- The `sale=` kwarg passed to `set_sy.publish_to_all_channels(product_id, sale=...)` — `sale=True` excludes Pinterest, `sale=False` includes all channels.
 
 **The current rule is to only act on `DRAFT` products.** `ACTIVE` products are skipped so we never overwrite a live page. This is enforced in both `main.py` and `return_product.py`.
 
@@ -102,22 +107,23 @@ PUD.decide(STYLE, COLOR, FP_DC)  →  create_new=True  →  CreatePP.create_<typ
    │     if not keep:  skip product (no stock)
    │     filter qty_ne / qty_ba by keep
    │
-   ├── product_data = product_post(STYLE, COLOR, SEASON, P, keep=...)
+   ├── product_data = self.product_post(P, keep=..., qty=...)
    │     │
    │     ├── P.title_and_desc()        title, sale title, body HTML, thread composition
    │     ├── P.get_SEL()               SEO page title, meta description, handle/url
    │     ├── P.get_weight()            sizes + per-variant weight (from IM Master xlsx)
    │     ├── P.get_sku_barcode()       SKUs + UPC barcodes (from PRODUCTION/SAMPLE UPC LIST)
    │     ├── P.get_metachart()         size chart HTML (from MASTER_DATA sheet)
-   │     ├── P.get_tags()              tag string (per-type tags + color + dated tag)
+   │     ├── P.get_tags()              base tag string (per-type tags + color + dated tag)
+   │     ├── tg.additional_tags(...)   appends qty/size-based tags, returns (tags, template_suffix)
    │     ├── P.get_type()              product_type derived from STYLE name
    │     ├── P.get_price()             full_price + sale price (with fallback chain)
    │     ├── [if keep]                 filter sizes/weights/skus/barcodes by keep
    │     └── assemble variants + options + Shopify product payload
    │
-   ├── POST /admin/api/2026-01/products.json     ← creates the draft product
+   ├── POST /admin/api/2026-01/products.json     ← creates the draft product (early return on non-201)
    │
-   ├── set_sy.publish_to_all_channels(product_id) ← assigns to every sales channel (GraphQL)
+   ├── set_sy.publish_to_all_channels(product_id, sale=self.sale) ← Pinterest is excluded when sale=True
    │
    └── set_inventory_metafield(response, type, qty_ne=, qty_ba=)
          │
@@ -144,16 +150,17 @@ PUD.decide(STYLE, COLOR, FP_DC)  →  create_new=False  →  UpdatePP.update_<ty
    ├── GET /admin/api/2024-01/products/{id}.json
    │     └── build sku_to_id = {variant.sku: variant.id}
    │
-   ├── variants, options = product_post(self.COLOR, P, keep=...)
+   ├── variants, options, tags, template_suffix = self.product_post(self.COLOR, P, keep=..., qty=...)
    │
    ├── for each new variant:
    │       if v["sku"] in sku_to_id: v["id"] = sku_to_id[v["sku"]]   ← keeps Shopify treating it as an update
    │
    ├── PUT /admin/api/2024-01/products/{id}.json
-   │     payload = {"product": {"id": ..., "variants": [...], "options": [...]}}
+   │     payload = {"product": {"id": ..., "variants": [...], "options": [...], "tags": ..., "template_suffix": ...}}
    │
    └── set_inventory_metafield(response, type, qty_ne=, qty_ba=)
-         (same per-variant inventory + tax metafield posting as create)
+         (same per-variant inventory + tax metafield posting as create;
+          for `sample`, qty_sample[0] is extracted before passing — qty_sample is a 1-element list)
 ```
 
 Shopify's PUT semantics handle the reconciliation:
@@ -215,8 +222,8 @@ Split into two cases:
 Edit the constants at the top of `main.py`:
 
 ```python
-STYLE  = "MARINA CREW MERCER".upper()
-COLOR  = "CANTALOUPE".upper()
+STYLE  = "EMORY TIPPED L/S TOP COTTON".upper()
+COLOR  = "Ventana Blue/Twilight Sky".upper()
 SEASON = "26 Spring"
 production_type = "fixed"   # one of: unfix, fixed, sample, sale_stock, o4
 ```
@@ -229,9 +236,9 @@ python main.py
 
 `main.py` will:
 
-1. Map `production_type` → `FP_DC` (FP for unfix/fixed, DC otherwise).
+1. Map `production_type` → `FP_DC` and `SALE` (FP / `SALE=False` for unfix/fixed, DC / `SALE=True` otherwise).
 2. Call `PUD.decide(STYLE, COLOR, FP_DC)`.
-3. If `status == DRAFT`: route to `CreatePP` (new) or `UpdatePP` (existing).
+3. If `status == DRAFT`: route to `CreatePP(STYLE, COLOR, SEASON, SALE)` (new) or `UpdatePP(STYLE, COLOR, SEASON, product_id, SALE)` (existing).
 4. Otherwise print "not found or an active pp. skipping" and exit.
 
 ### Bulk, sheet-driven (`return_product.py`)
@@ -255,10 +262,11 @@ The whole loop is wrapped in `try/except: traceback.print_exc()` so one bad row 
 ## 9. Known caveats
 
 - **`return_product.py` update calls are currently commented out** ([return_product.py:60](return_product.py#L60), [return_product.py:64](return_product.py#L64)). Uncomment when you're ready to let the bulk flow actually write to Shopify.
-- **Create-side error handling is permissive.** `CreatePP.create_*` functions wrap `ProductInfo` construction in `try/except` that only `print`s — if it fails, the function still tries to POST `product_data`, which will `NameError`. Don't catch this unless you're ready to rethink the error model end-to-end.
+- **Error handling swallows failures.** Both `CreatePP.create_*` and `UpdatePP.update_*` wrap their full body in `try/except Exception: traceback.print_exc()`. A failure will print a stack trace but the loop in `return_product.py` (and `main.py` for a single run) keeps going. Check console output — silent success is not the same as actual success.
 - **Update-side relies on stable SKUs.** The PUT reconciliation in [update_pp.py](update_pp.py) matches existing variants by SKU. If a SKU changes for a size+color that already exists, Shopify will see "delete old + create new with same option combo" and reject with "Option values are not unique" (422). Keep SKUs stable, or extend the matching to use `option1+option2`.
 - **API version is mixed.** `update_pp.py` uses `2024-01` for product calls and `2026-01` for inventory/metafields. `create_pp.py` uses `2026-01`. Functional but inconsistent.
 - **`set_inventory_metafield` has a silent catch-all.** Any `production_type` not in `('fixed', 'sale_stock', 'sample')` falls into the `Bali_To_Produce_ID` + 5000 branch. `unfix` and `o4` rely on this. A typoed production_type would also silently route there.
+- **`qty_sample` is a 1-element list.** `P.get_sample_qty()` returns a list; callers must use `qty_sample[0]` both for the `tags_generator` call and when passing to `set_inventory_metafield` (otherwise the list itself ends up as the `available` value posted to Shopify).
 - **Shopify variant order in the response is trusted** to match creation order (and update order) for the per-variant inventory loop. Normally true; if you ever see inventory landing on the wrong size, that's the first thing to check.
 - **`get_BALI_qty` always returns 0 for X/L** (intentional — Bali doesn't carry X/L). A `fixed` product with NE-only X/L stock will correctly post 0 to Bali for that variant.
 - **Header-duplication safety in `return_product.py`**: the loop uses a `_first()` helper because the Master Grid of Return sheet can have duplicate column headers — `_first(x)` returns `x.iloc[0]` if `x` is a Series, else `x`. Don't remove unless you've confirmed headers are unique.
