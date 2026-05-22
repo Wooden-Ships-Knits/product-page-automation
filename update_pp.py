@@ -57,7 +57,9 @@ class UpdatePP:
             self.set_inventory_metafield(response, 'unfix')
         except Exception as e:
             traceback.print_exc()
-
+        link = f"https://admin.shopify.com/store/wooden-ships/products/{self.PRODUCT_ID}"
+        return link
+    
     def update_fixed(self):
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=False, sas=False)
@@ -97,7 +99,9 @@ class UpdatePP:
 
         except Exception:
             traceback.print_exc()
-
+        link = f"https://admin.shopify.com/store/wooden-ships/products/{self.PRODUCT_ID}"
+        return link
+    
     def update_sample(self):
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=True, sale=True, sas=False)
@@ -124,6 +128,8 @@ class UpdatePP:
             self.set_inventory_metafield(response, 'sample', qty_sample=qty_sample[0])
         except Exception as e:
             traceback.print_exc()
+        link = f"https://admin.shopify.com/store/wooden-ships/products/{self.PRODUCT_ID}"
+        return link 
 
     def update_sale_stock(self):
         try:
@@ -164,6 +170,8 @@ class UpdatePP:
 
         except Exception:
             traceback.print_exc()
+        link = f"https://admin.shopify.com/store/wooden-ships/products/{self.PRODUCT_ID}"
+        return link
 
     def update_o4(self):
         try:
@@ -190,6 +198,8 @@ class UpdatePP:
             self.set_inventory_metafield(response, 'o4')
         except Exception as e:
             traceback.print_exc()
+        link = f"https://admin.shopify.com/store/wooden-ships/products/{self.PRODUCT_ID}"
+        return link
     
     def product_post(self,COLOR,P,keep=None,qty= None):
         sizes,weights = P.get_weight()
@@ -297,3 +307,7 @@ class UpdatePP:
                     }
                 },
             )
+
+"""
+https://admin.shopify.com/store/wooden-ships/products/7976332853296
+"""

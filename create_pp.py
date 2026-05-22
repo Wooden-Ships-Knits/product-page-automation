@@ -31,6 +31,7 @@ class CreatePP:
             return 0
 
     def create_unfix(self):
+        product_id = None
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=False, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
@@ -39,7 +40,7 @@ class CreatePP:
             response = requests.post(product_url, headers=headers, json=product_data)
             if response.status_code != 201:
                 print("Product creation failed:", response.text)
-                return
+                return None, None
             product = response.json()["product"]
             product_id = product["id"]
 
@@ -48,8 +49,12 @@ class CreatePP:
             self.set_inventory_metafield(response, 'unfix')
         except Exception:
             traceback.print_exc()
-
+            return None, None
+        link = f"https://admin.shopify.com/store/wooden-ships/products/{product_id}"
+        return link, product_id
+    
     def create_fixed(self):
+        product_id = None
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=False, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
@@ -59,7 +64,7 @@ class CreatePP:
             keep = [i for i, q in enumerate(combined) if q > 0]
             if not keep:
                 print(f"No stock for {self.STYLE} {self.COLOR} — skipping fixed product.")
-                return
+                return None, None
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
             total_qty = sum(
@@ -72,7 +77,7 @@ class CreatePP:
             response = requests.post(product_url, headers=headers, json=product_data)
             if response.status_code != 201:
                 print("Product creation failed:", response.text)
-                return
+                return None, None
             product = response.json()["product"]
             product_id = product["id"]
 
@@ -81,8 +86,12 @@ class CreatePP:
             self.set_inventory_metafield(response, 'fixed', qty_ne=qty_ne, qty_ba=qty_ba)
         except Exception:
             traceback.print_exc()
-
+            return None, None
+        link = f"https://admin.shopify.com/store/wooden-ships/products/{product_id}"
+        return link, product_id
+    
     def create_sample(self):
+        product_id = None
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=True, sale=True, sas=False)
             qty_sample = P.get_sample_qty()
@@ -92,7 +101,7 @@ class CreatePP:
             response = requests.post(product_url, headers=headers, json=product_data)
             if response.status_code != 201:
                 print("Product creation failed:", response.text)
-                return
+                return None, None
             product = response.json()["product"]
             product_id = product["id"]
 
@@ -101,8 +110,12 @@ class CreatePP:
             self.set_inventory_metafield(response, 'sample', qty_sample=qty_sample[0])
         except Exception:
             traceback.print_exc()
-
+            return None, None
+        link = f"https://admin.shopify.com/store/wooden-ships/products/{product_id}"
+        return link, product_id
+    
     def create_sale_stock(self):
+        product_id = None
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=True, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
@@ -112,7 +125,7 @@ class CreatePP:
             keep = [i for i, q in enumerate(combined) if q > 0]
             if not keep:
                 print(f"No stock for {self.STYLE} {self.COLOR} — skipping sale_stock product.")
-                return
+                return None, None
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
             total_qty = sum(
@@ -124,7 +137,7 @@ class CreatePP:
             response = requests.post(product_url, headers=headers, json=product_data)
             if response.status_code != 201:
                 print("Product creation failed:", response.text)
-                return
+                return None, None
             product = response.json()["product"]
             product_id = product["id"]
 
@@ -133,8 +146,12 @@ class CreatePP:
             self.set_inventory_metafield(response, 'sale_stock', qty_ne=qty_ne, qty_ba=qty_ba)
         except Exception:
             traceback.print_exc()
-
+            return None, None
+        link = f"https://admin.shopify.com/store/wooden-ships/products/{product_id}"
+        return link, product_id
+    
     def create_o4(self):
+        product_id = None
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=True, sas=True)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
@@ -143,7 +160,7 @@ class CreatePP:
             response = requests.post(product_url, headers=headers, json=product_data)
             if response.status_code != 201:
                 print("Product creation failed:", response.text)
-                return
+                return None, None
             product = response.json()["product"]
             product_id = product["id"]
 
@@ -152,7 +169,10 @@ class CreatePP:
             self.set_inventory_metafield(response, 'o4')
         except Exception:
             traceback.print_exc()
-
+            return None, None
+        link = f"https://admin.shopify.com/store/wooden-ships/products/{product_id}"
+        return link, product_id
+    
     def product_post(self,P,keep=None,qty=None):
         title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
         print(f"title_page: {title_page}")

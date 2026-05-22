@@ -4,7 +4,9 @@ import pandas as pd
 import create_pp
 import update_pp
 import post_update_decision as PUD
+from Setup import setup
 
+sheet = setup.sheet
 STYLE= "EMORY TIPPED L/S TOP COTTON".upper()
 COLOR = "Ventana Blue/Twilight Sky".upper()
 SEASON = "26 Spring"
@@ -22,30 +24,70 @@ create_new, product_id, status =PUD.decide(STYLE,COLOR,FP_DC)
 print(create_new,product_id,status)
 
 if __name__ == "__main__":
+    styles = []
+    colors = []
+    product_ids = []
+    FP_DCs = []
+
     if status.upper() == "DRAFT":
-        if create_new==True:
-            C = create_pp.CreatePP(STYLE,COLOR,SEASON,SALE)
+        if create_new == True:
+            C = create_pp.CreatePP(STYLE, COLOR, SEASON, SALE)
             if production_type == 'unfix':
-                C.create_unfix()
+                link, product_id = C.create_unfix()
             elif production_type == 'fixed':
-                C.create_fixed() 
+                link, product_id = C.create_fixed()
             elif production_type == 'sale_stock':
-                C.create_sale_stock()
+                link, product_id = C.create_sale_stock()
             elif production_type == 'o4':
-                C.create_o4()
+                link, product_id = C.create_o4()
             elif production_type == 'sample':
-                C.create_sample()
-        elif  create_new == False:
-            U = update_pp.UpdatePP(STYLE,COLOR,SEASON,product_id,SALE)
+                link, product_id = C.create_sample()
+
+            if link is not None:
+                styles.append(STYLE)
+                colors.append(COLOR)
+                FP_DCs.append(FP_DC)
+                product_ids.append(product_id)
+
+        elif create_new == False:
+            U = update_pp.UpdatePP(STYLE, COLOR, SEASON, product_id, SALE)
             if production_type == 'unfix':
-                U.update_unfix()
+                link = U.update_unfix()
             elif production_type == 'fixed':
-                U.update_fixed() 
+                link = U.update_fixed()
             elif production_type == 'sale_stock':
-                U.update_sale_stock()
+                link = U.update_sale_stock()
             elif production_type == 'o4':
-                U.update_o4()
+                link = U.update_o4()
             elif production_type == 'sample':
-                U.update_sample()
-    else: print('not found or an active pp. skipping')
+                link = U.update_sample()
+
+    else:
+        print(f'{STYLE} - {COLOR} not found or an active pp. skipping')
+
+    if styles:
+        values = setup._get_sheet_values(
+            sheet_id="1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk",
+            worksheet_name='PP SY LIST',
+            use_all_values=True
+        )
+        df = pd.DataFrame(values[1:], columns=values[0])
+        df = df[df['Style'].fillna('').astype(str).str.strip() == ""]
+        if df.empty:
+            print("PP SY LIST has no empty Style row to append to — aborting write")
+        else:
+            start_idx = df.index[0]
+            new_rows = [
+                [color, style, pid, "DRAFT", fpdc]
+                for color, style, pid, fpdc in zip(colors, styles, product_ids, FP_DCs)
+            ]
+            sheet.values().update(
+                spreadsheetId="1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk",
+                range=f"'PP SY LIST'!R{start_idx + 2}",
+                valueInputOption="RAW",
+                body={"values": new_rows}
+            ).execute()
+
+
+
 
