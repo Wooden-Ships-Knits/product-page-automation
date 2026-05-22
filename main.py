@@ -7,8 +7,8 @@ import post_update_decision as PUD
 from Setup import setup
 
 sheet = setup.sheet
-STYLE= "EMORY TIPPED L/S TOP COTTON".upper()
-COLOR = "Ventana Blue/Twilight Sky".upper()
+STYLE= "AVA RAGLAN CHUNKY CREW COTTON".upper()
+COLOR = "Black/Almond Butter".upper()
 SEASON = "26 Spring"
 production_type = "fixed"
 
@@ -79,15 +79,17 @@ if __name__ == "__main__":
         else:
             start_idx = df.index[0]
             new_rows = [
-                [color, style, pid, "DRAFT", fpdc]
-                for color, style, pid, fpdc in zip(colors, styles, product_ids, FP_DCs)
+                [ style, color, pid, "DRAFT", fpdc]
+                for  style, color, pid, fpdc in zip(styles, colors,  product_ids, FP_DCs)
             ]
             sheet.values().update(
                 spreadsheetId="1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk",
-                range=f"'PP SY LIST'!R{start_idx + 2}",
+                range=f"'PP SY LIST'!A{start_idx + 2}",
                 valueInputOption="RAW",
                 body={"values": new_rows}
             ).execute()
+    
+    print(link)
 
 
 

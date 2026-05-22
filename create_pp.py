@@ -65,7 +65,8 @@ class CreatePP:
             if not keep:
                 print(f"No stock for {self.STYLE} {self.COLOR} — skipping fixed product.")
                 return None, None
-            skus_chosen = [skus_ne[i] for i in keep]
+            skus_chosen = [skus_ne[i] if str(skus_ne[i]).strip() else skus_ba[i] for i in keep]
+            barcodes_chosen = P.fetch_barcode(skus_chosen)
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
             total_qty = sum(
@@ -73,7 +74,7 @@ class CreatePP:
                 for a, b in zip(qty_ne, qty_ba)
             )
 
-            product_data = self.product_post(P, keep=keep, qty=total_qty, skus=skus_chosen)
+            product_data = self.product_post(P, keep=keep, qty=total_qty, skus=skus_chosen, barcodes=barcodes_chosen)
 
             response = requests.post(product_url, headers=headers, json=product_data)
             if response.status_code != 201:
@@ -127,14 +128,15 @@ class CreatePP:
             if not keep:
                 print(f"No stock for {self.STYLE} {self.COLOR} — skipping sale_stock product.")
                 return None, None
-            skus_chosen = [skus_ne[i] for i in keep]
+            skus_chosen = [skus_ne[i] if str(skus_ne[i]).strip() else skus_ba[i] for i in keep]
+            barcodes_chosen = P.fetch_barcode(skus_chosen)
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
             total_qty = sum(
                 self._to_int(a) + self._to_int(b)
                 for a, b in zip(qty_ne, qty_ba)
             )
-            product_data = self.product_post(P, keep=keep, qty=total_qty, skus=skus_chosen)
+            product_data = self.product_post(P, keep=keep, qty=total_qty, skus=skus_chosen, barcodes=barcodes_chosen)
 
             response = requests.post(product_url, headers=headers, json=product_data)
             if response.status_code != 201:
@@ -175,7 +177,7 @@ class CreatePP:
         link = f"https://admin.shopify.com/store/wooden-ships/products/{product_id}"
         return link, product_id
     
-    def product_post(self,P,keep=None,qty=None,skus=None):
+    def product_post(self,P,keep=None,qty=None,skus=None,barcodes=None):
         title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
         print(f"title_page: {title_page}")
         print(f"sale_title_page: {sale_title_page}")
@@ -188,15 +190,16 @@ class CreatePP:
         print(f"url: {url}")
 
         sizes,weights = P.get_weight()
-        barcodes, default_skus = P.get_sku_barcode()
+        default_barcodes, default_skus = P.get_sku_barcode()
 
         if keep is not None:
             sizes    = [sizes[i]    for i in keep]
             weights  = [weights[i]  for i in keep]
             default_skus = [default_skus[i] for i in keep]
-            barcodes = [barcodes[i] for i in keep]
+            default_barcodes = [default_barcodes[i] for i in keep]
 
         skus = skus if skus is not None else default_skus
+        barcodes = barcodes if barcodes is not None else default_barcodes
 
         print(f"size: {sizes}, \nweights: {weights}")
         print(f"barcodes: {barcodes}")

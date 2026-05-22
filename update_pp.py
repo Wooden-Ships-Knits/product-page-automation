@@ -71,6 +71,8 @@ class UpdatePP:
             if not keep:
                 print(f"No stock for {self.STYLE} {self.COLOR} — skipping fixed product.")
                 return
+            skus_chosen = [skus_ne[i] if str(skus_ne[i]).strip() else skus_ba[i] for i in keep]
+            barcodes_chosen = P.fetch_barcode(skus_chosen)
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
             total_qty = sum(
@@ -80,7 +82,7 @@ class UpdatePP:
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
 
-            variants, options,tags, template_suffix = self.product_post(self.COLOR, P, keep=keep, qty= total_qty)
+            variants, options,tags, template_suffix = self.product_post(self.COLOR, P, keep=keep, qty=total_qty, skus=skus_chosen, barcodes=barcodes_chosen)
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -142,6 +144,8 @@ class UpdatePP:
             if not keep:
                 print(f"No stock for {self.STYLE} {self.COLOR} — skipping sale_stock product.")
                 return
+            skus_chosen = [skus_ne[i] if str(skus_ne[i]).strip() else skus_ba[i] for i in keep]
+            barcodes_chosen = P.fetch_barcode(skus_chosen)
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
 
@@ -151,7 +155,7 @@ class UpdatePP:
                 self._to_int(a) + self._to_int(b)
                 for a, b in zip(qty_ne, qty_ba)
             )
-            variants, options,tags,template_suffix = self.product_post(self.COLOR, P, keep=keep, qty=total_qty)
+            variants, options,tags,template_suffix = self.product_post(self.COLOR, P, keep=keep, qty=total_qty, skus=skus_chosen, barcodes=barcodes_chosen)
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -201,15 +205,18 @@ class UpdatePP:
         link = f"https://admin.shopify.com/store/wooden-ships/products/{self.PRODUCT_ID}"
         return link
     
-    def product_post(self,COLOR,P,keep=None,qty= None):
+    def product_post(self,COLOR,P,keep=None,qty=None,skus=None,barcodes=None):
         sizes,weights = P.get_weight()
-        barcodes, skus = P.get_sku_barcode()
+        default_barcodes, default_skus = P.get_sku_barcode()
 
         if keep is not None:
             sizes    = [sizes[i]    for i in keep]
             weights  = [weights[i]  for i in keep]
-            skus     = [skus[i]     for i in keep]
-            barcodes = [barcodes[i] for i in keep]
+            default_skus = [default_skus[i] for i in keep]
+            default_barcodes = [default_barcodes[i] for i in keep]
+
+        skus = skus if skus is not None else default_skus
+        barcodes = barcodes if barcodes is not None else default_barcodes
 
         print(f"size: {sizes}, \nweights: {weights}")
         print(f"barcodes: {barcodes}")

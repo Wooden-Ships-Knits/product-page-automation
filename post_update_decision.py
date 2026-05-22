@@ -27,7 +27,7 @@ def decide(STYLE,COLOR,FP_DC):
         print("Create new")
         create_new = True
         product_id = ""
-        status = ""
+        status = "DRAFT"
 
     else:
         print("Update")

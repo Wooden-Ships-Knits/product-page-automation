@@ -131,7 +131,7 @@ class ProductInfo:
             sheet_name = "PRODUCTION UPC LIST"
 
         values = setup._get_sheet_values(
-        sheet_id=os.getenv("PPA_ID"),
+        sheet_id=os.getenv("SKU_UPC_ID"),
         worksheet_name=sheet_name,
         use_all_values=True,
         )
@@ -440,8 +440,9 @@ class ProductInfo:
 
 
     
-        url = f"{sale_url}{product_url}-sweater-{color_url}{text_generic_colors[0].replace(' ', '-').lower()}-{int(time.time())}"
-
+        # url = f"{sale_url}{product_url}-sweater-{color_url}{text_generic_colors[0].replace(' ', '-').lower()}-{int(time.time())}" # doesnt need this method anymore
+        url = f"{sale_url}{product_url}-sweater-{color_url}{text_generic_colors[0].replace(' ', '-').lower()}"
+        
         return page_title, meta_desc, url
 
     def get_type(self): #look for better method
@@ -490,7 +491,7 @@ class ProductInfo:
 
         tags +=f"{generic_color}, "
 
-        tags += f"Additional {datetime.now().strftime('%b %-d %Y')}"
+        tags += f"Additional {datetime.now().strftime('%b %-d %Y')}, "
 
         return tags
 
@@ -501,12 +502,11 @@ class ProductInfo:
             df['style'].str.contains(self.style,case=False, na=False)&
             df['color'].str.contains(self.color, case=False, na=False)
         ]
+        if df.empty:
+            return [0, 0, 0, 0], ["", "", "", ""]
         sku_no_size = df['style_code'].iloc[0]+"-"+df['color'].iloc[0]
         skus = [sku_no_size+'-X/S',sku_no_size+'-S/M',sku_no_size+'-M/L',sku_no_size+'-X/L']
-        if not df.empty:
-            qty_ne = [df['X/S'].iloc[0],df['S/M'].iloc[0],df['M/L'].iloc[0],df['X/L'].iloc[0]]
-        else: 
-            qty_ne = [0,0,0,0]
+        qty_ne = [df['X/S'].iloc[0],df['S/M'].iloc[0],df['M/L'].iloc[0],df['X/L'].iloc[0]]
         return qty_ne, skus
 
     def get_BALI_qty(self):
@@ -516,12 +516,11 @@ class ProductInfo:
             df['style'].str.contains(self.style,case=False, na=False)&
             df['color'].str.contains(self.color, case=False, na=False)
         ]
+        if df.empty:
+            return [0, 0, 0, 0], ["", "", "", ""]
         sku_no_size = df['style_code'].iloc[0]+"-"+df['color'].iloc[0]
         skus = [sku_no_size+'-X/S',sku_no_size+'-S/M',sku_no_size+'-M/L',sku_no_size+'-X/L']
-        if not df.empty:
-            qty_ba = [df['X/S'].iloc[0],df['S/M'].iloc[0],df['M/L'].iloc[0],0]
-        else: 
-            qty_ba = [0,0,0,0]
+        qty_ba = [df['X/S'].iloc[0],df['S/M'].iloc[0],df['M/L'].iloc[0],0]
         return qty_ba, skus
 
     def get_sample_qty(self):
@@ -536,3 +535,22 @@ class ProductInfo:
         else: 
             qty = 0
         return qty
+    
+    def fetch_barcode(self, skus):
+        values = setup._get_sheet_values(
+            sheet_id=os.getenv("SKU_UPC_ID"),
+            worksheet_name="PRODUCTION UPC LIST",
+            use_all_values=True
+        )
+        df = pd.DataFrame(values[5:], columns=values[4])
+
+        sku_to_barcode = dict(zip(
+            df['Lineitem sku'].astype(str).str.strip().str.upper(),
+            df['UPC Barcode'].astype(str)
+        ))
+
+        barcodes = []
+        for sku in skus:
+            key = str(sku).strip().upper()
+            barcodes.append(sku_to_barcode.get(key, ""))
+        return barcodes
