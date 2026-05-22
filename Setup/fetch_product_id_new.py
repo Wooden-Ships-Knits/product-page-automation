@@ -1,12 +1,15 @@
 import requests
-from Setup import set_sy, setup
+try:
+  from Setup import set_sy, setup
+except:
+  import set_sy,setup
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import pandas as pd
 from dotenv import load_dotenv
 import os
-
-load_dotenv()
+from pathlib import Path
+load_dotenv(Path(__file__).parent / "Setup/.env", override=True)
 
 """
 Bagian ini digunakan untuk fetch Product ID yang diupload ke google sheet guna untuk menghindari duplicate product page jika sudah ada product page dengan style-color yang sama.
@@ -32,6 +35,7 @@ query ($cursor: String) {
         id
         title
         status
+        description
         variants(first: 1) {
           edges {
             node {
@@ -65,7 +69,8 @@ def fetch():
       "Style",
       "Product ID",
       "Page Status",
-      "FP/DC"
+      "FP/DC",
+      "Description"
   ])
 
   cursor = None
@@ -85,6 +90,7 @@ def fetch():
           product_id = p["id"].split("/")[-1]
           title = p["title"]
           status = p["status"]
+          description = p.get("description") or ""
 
           # Extract first variant color
           color = ""
@@ -99,10 +105,11 @@ def fetch():
           rows.append([
               title,
               color,
-              "",             # FP/DC
+              "",             # Style (filled in preprocessing)
               product_id,
               status,
-              ""              # Current Production Type
+              "",             # FP/DC (filled in preprocessing)
+              description,
           ])
 
       if not data["pageInfo"]["hasNextPage"]:
@@ -127,8 +134,20 @@ def fetch():
   df['Style'] = df['Style'].str.replace("*SALE * - ", "", regex=False)
   df['Style'] = df['Style'].str.strip()
   df['FP/DC'] = ["DC" if "SALE" in d else "FP" for d in df['Page Title']]
-  rows = df.values.tolist()
+  
+  boilerplate = [
+      "Composition: 60% Cotton, 40% Acrylic",
+      "Composition: 76% acrylic, 12% Mohair and 12% Wool",
+      "Sale items are FINAL SALE: No Returns, Refunds or Exchanges.\nWhy is this on Sale? Sometimes a shopper changes their mind leaving us with perfectly fabulous sweaters, or we have extra yarn with which we knit new sweaters.",
+      "Sale items are FINAL SALE: No Returns, Refunds, or Exchanges.\nWhy is this on Sale? These pieces are knit as samples for our wholesale business. They have been handled during sales appointments, but they are carefully inspected before shipping.",
+  ]
+  for b in boilerplate:
+      df['Description'] = df['Description'].str.replace(b, "", regex=False)
+  df['Description'] = df['Description'].str.strip()
+  df = df[['Style','Color','Product ID','Page Status','FP/DC','Description']]
 
+  rows = df.values.tolist()
+  
   # -------------------------
   # WRITE TO GOOGLE SHEETS
   # -------------------------

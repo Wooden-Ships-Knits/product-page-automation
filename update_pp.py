@@ -64,8 +64,8 @@ class UpdatePP:
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=False, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
-            qty_ne = P.get_NE_qty()
-            qty_ba = P.get_BALI_qty()
+            qty_ne, skus_ne = P.get_NE_qty()
+            qty_ba, skus_ba = P.get_BALI_qty()
             combined = [self._to_int(a) + self._to_int(b) for a, b in zip(qty_ne, qty_ba)]
             keep = [i for i, q in enumerate(combined) if q > 0]
             if not keep:
@@ -135,8 +135,8 @@ class UpdatePP:
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=True, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
-            qty_ne = P.get_NE_qty()
-            qty_ba = P.get_BALI_qty()
+            qty_ne, skus_ne = P.get_NE_qty()
+            qty_ba, skus_ba = P.get_BALI_qty()
             combined = [self._to_int(a) + self._to_int(b) for a, b in zip(qty_ne, qty_ba)]
             keep = [i for i, q in enumerate(combined) if q > 0]
             if not keep:

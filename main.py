@@ -21,6 +21,7 @@ else:
 
 create_new, product_id, status =PUD.decide(STYLE,COLOR,FP_DC)
 
+print("="*50)
 print(create_new,product_id,status)
 
 if __name__ == "__main__":

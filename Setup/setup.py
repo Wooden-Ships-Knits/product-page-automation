@@ -2,7 +2,10 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import gspread
 import pandas as pd
-from Setup import set_sy
+try:
+  from Setup import set_sy
+except:
+  import set_sy
 
 # ============== Shopify ==========================
 

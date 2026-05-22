@@ -501,10 +501,13 @@ class ProductInfo:
             df['style'].str.contains(self.style,case=False, na=False)&
             df['color'].str.contains(self.color, case=False, na=False)
         ]
+        sku_no_size = df['style_code'].iloc[0]+"-"+df['color'].iloc[0]
+        skus = [sku_no_size+'-X/S',sku_no_size+'-S/M',sku_no_size+'-M/L',sku_no_size+'-X/L']
         if not df.empty:
             qty_ne = [df['X/S'].iloc[0],df['S/M'].iloc[0],df['M/L'].iloc[0],df['X/L'].iloc[0]]
-        else: qty_ne = [0,0,0,0]
-        return qty_ne
+        else: 
+            qty_ne = [0,0,0,0]
+        return qty_ne, skus
 
     def get_BALI_qty(self):
         df = self._ppa_data('BALI STOCK')
@@ -513,10 +516,13 @@ class ProductInfo:
             df['style'].str.contains(self.style,case=False, na=False)&
             df['color'].str.contains(self.color, case=False, na=False)
         ]
+        sku_no_size = df['style_code'].iloc[0]+"-"+df['color'].iloc[0]
+        skus = [sku_no_size+'-X/S',sku_no_size+'-S/M',sku_no_size+'-M/L',sku_no_size+'-X/L']
         if not df.empty:
             qty_ba = [df['X/S'].iloc[0],df['S/M'].iloc[0],df['M/L'].iloc[0],0]
-        else: qty_ba = [0,0,0,0]
-        return qty_ba
+        else: 
+            qty_ba = [0,0,0,0]
+        return qty_ba, skus
 
     def get_sample_qty(self):
         df = self._ppa_data('NE SAMPLE STOCK')

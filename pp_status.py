@@ -5,6 +5,6 @@ import create_pp
 import update_pp
 
 """
-fixed
+this will be the source for which colors and styles that is going to be processed
 """
 

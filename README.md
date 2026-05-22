@@ -100,25 +100,28 @@ PUD.decide(STYLE, COLOR, FP_DC)  →  create_new=True  →  CreatePP.create_<typ
    ├── P = ProductInfo(STYLE, COLOR, SEASON, sample=..., sale=..., sas=...)
    │
    ├── [fixed / sale_stock only]
-   │     qty_ne = P.get_NE_qty()                  ← reads NE STOCK sheet
-   │     qty_ba = P.get_BALI_qty()                ← reads BALI STOCK sheet
+   │     qty_ne, skus_ne = P.get_NE_qty()          ← reads NE STOCK sheet (qty + SKU columns)
+   │     qty_ba, skus_ba = P.get_BALI_qty()        ← reads BALI STOCK sheet (qty + SKU columns)
    │     combined = qty_ne + qty_ba (per size)
    │     keep = indices where combined > 0
    │     if not keep:  skip product (no stock)
+   │     skus_chosen = [skus_ne[i] for i in keep]  ← stock-driven SKUs (NE source of truth)
    │     filter qty_ne / qty_ba by keep
    │
-   ├── product_data = self.product_post(P, keep=..., qty=...)
+   ├── product_data = self.product_post(P, keep=..., qty=..., skus=skus_chosen?)
    │     │
    │     ├── P.title_and_desc()        title, sale title, body HTML, thread composition
    │     ├── P.get_SEL()               SEO page title, meta description, handle/url
    │     ├── P.get_weight()            sizes + per-variant weight (from IM Master xlsx)
-   │     ├── P.get_sku_barcode()       SKUs + UPC barcodes (from PRODUCTION/SAMPLE UPC LIST)
+   │     ├── P.get_sku_barcode()       UPC barcodes + DEFAULT SKUs (from PRODUCTION/SAMPLE UPC LIST)
+   │     │                              — used only when caller didn't pass skus=
    │     ├── P.get_metachart()         size chart HTML (from MASTER_DATA sheet)
    │     ├── P.get_tags()              base tag string (per-type tags + color + dated tag)
    │     ├── tg.additional_tags(...)   appends qty/size-based tags, returns (tags, template_suffix)
    │     ├── P.get_type()              product_type derived from STYLE name
    │     ├── P.get_price()             full_price + sale price (with fallback chain)
-   │     ├── [if keep]                 filter sizes/weights/skus/barcodes by keep
+   │     ├── [if keep]                 filter sizes/weights/barcodes/default_skus by keep
+   │     ├── skus = skus_kwarg if provided else default_skus
    │     └── assemble variants + options + Shopify product payload
    │
    ├── POST /admin/api/2026-01/products.json     ← creates the draft product
@@ -182,6 +185,9 @@ Status, title, description, images, tags, and any other field not included in th
 - **Size chart**: comes from `MASTER_DATA_ID`. `DEV | XL | (Y/N)` flag toggles whether X/L is included. The chart currently always renders **all sizes from master data**, even when stock-based filtering drops variants — by design (the chart is a reference, not a stock listing).
 - **Generic color**: looked up in the `Color list` tab of the PPA sheet. If absent, GPT proposes one and writes it back to the sheet for next time.
 - **Prices** use a cascading fallback: `PB ADJUSTED ...` → `LATEST ...` → `IM PRICE`.
+- **SKU source depends on production type**:
+  - `fixed` / `sale_stock` → use the SKU from the **NE STOCK** sheet (`skus_ne`), positionally aligned with `qty_ne`. Caller passes `skus=skus_chosen` to `product_post`.
+  - `unfix` / `sample` / `o4` → use the default SKU from `P.get_sku_barcode()` (`PRODUCTION UPC LIST` or `SAMPLE UPC LIST`). `product_post` falls back to `default_skus` when `skus=` is not passed.
 
 ---
 
@@ -216,7 +222,7 @@ Split into two cases:
 - All 4 sizes (or just S/M for `sample`) always created.
 - Inventory set to a flat `5000` at a single location, signalling "to-be-produced" supply.
 
-> **Order assumption**: `get_NE_qty`, `get_BALI_qty`, `get_weight`, `get_sku_barcode` all return arrays in **X/S → S/M → M/L → X/L** order. If a source sheet is sorted differently, fix it at the source — the code trusts this order and the filter uses positional indices.
+> **Order assumption**: `get_NE_qty` (returns `qty, skus`), `get_BALI_qty` (returns `qty, skus`), `get_weight`, `get_sku_barcode` all return arrays in **X/S → S/M → M/L → X/L** order. If a source sheet is sorted differently, fix it at the source — the code trusts this order and the filter uses positional indices.
 
 ---
 
@@ -278,6 +284,7 @@ The whole loop is wrapped in `try/except: traceback.print_exc()` so one bad row 
 - **`CreatePP.create_*` returns `(None, None)` on any failure** (no stock, non-201, exception). Callers must check `if link is not None:` before using the values. `UpdatePP.update_*` returns `None` on no-stock skip but still returns a built `link` after an exception — inconsistent with create, so don't assume a non-None update return means success without also looking at console.
 - **Error handling swallows failures.** Both `CreatePP.create_*` and `UpdatePP.update_*` wrap their full body in `try/except Exception: traceback.print_exc()`. A failure will print a stack trace but the loop in `return_product.py` (and `main.py` for a single run) keeps going. Check console output — silent success is not the same as actual success.
 - **Update-side relies on stable SKUs.** The PUT reconciliation in [update_pp.py](update_pp.py) matches existing variants by SKU. If a SKU changes for a size+color that already exists, Shopify will see "delete old + create new with same option combo" and reject with "Option values are not unique" (422). Keep SKUs stable, or extend the matching to use `option1+option2`.
+- **`fixed` / `sale_stock` create uses NE-stock SKUs, not the UPC list.** This is intentional (NE is the source of truth for what's actually shippable) but means a row missing from the NE STOCK sheet won't have its SKU available. If `skus_ne[i]` is empty/blank for a size that passed the `keep` filter, the variant gets created with an empty SKU. Worth a glance after a run.
 - **API version is mixed.** `update_pp.py` uses `2024-01` for product calls and `2026-01` for inventory/metafields. `create_pp.py` uses `2026-01`. Functional but inconsistent.
 - **`set_inventory_metafield` has a silent catch-all.** Any `production_type` not in `('fixed', 'sale_stock', 'sample')` falls into the `Bali_To_Produce_ID` + 5000 branch. `unfix` and `o4` rely on this. A typoed production_type would also silently route there.
 - **`qty_sample` is a 1-element list.** `P.get_sample_qty()` returns a list; callers must use `qty_sample[0]` both for the `tags_generator` call and when passing to `set_inventory_metafield` (otherwise the list itself ends up as the `available` value posted to Shopify).
