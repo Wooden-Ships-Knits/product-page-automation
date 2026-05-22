@@ -121,7 +121,7 @@ class UpdatePP:
                 }
             }
             response = requests.put(self.url, json=payload, headers=headers)
-            self.set_inventory_metafield(response, 'sample', qty_sample=qty_sample)
+            self.set_inventory_metafield(response, 'sample', qty_sample=qty_sample[0])
         except Exception as e:
             traceback.print_exc()
 

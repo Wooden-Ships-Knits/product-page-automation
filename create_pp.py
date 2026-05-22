@@ -2,6 +2,7 @@ from fetch_to_product_page import ProductInfo
 import requests
 from Setup import set_sy,setup,tags_generator as tg
 import os
+import traceback
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent / "Setup/.env", override=True)
@@ -23,7 +24,7 @@ class CreatePP:
         self.SEASON = SEASON
         self.sale = SALE
       
-    def _to_int(v):
+    def _to_int(self,v):
         try:
             return int(str(v).strip() or 0)
         except (TypeError, ValueError):
@@ -33,21 +34,20 @@ class CreatePP:
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=False, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P)
-        except Exception as e:
-            print(e)
+            product_data = self.product_post(P)
 
-        response = requests.post(product_url, headers=headers, json=product_data)
-        product = response.json()["product"]
-        product_id = product["id"]
+            response = requests.post(product_url, headers=headers, json=product_data)
+            if response.status_code != 201:
+                print("Product creation failed:", response.text)
+                return
+            product = response.json()["product"]
+            product_id = product["id"]
 
-        set_sy.publish_to_all_channels(product_id)
+            set_sy.publish_to_all_channels(product_id, sale=False)
 
-        if response.status_code != 201:
-            print("Product creation failed:", response.text,sale=False)
-            # continue
-
-        self.set_inventory_metafield(response,'unfix')
+            self.set_inventory_metafield(response, 'unfix')
+        except Exception:
+            traceback.print_exc()
 
     def create_fixed(self):
         try:
@@ -67,42 +67,40 @@ class CreatePP:
                 for a, b in zip(qty_ne, qty_ba)
             )
 
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P,keep=keep,qty=total_qty )
-        except Exception as e:
-            print(e)
+            product_data = self.product_post(P, keep=keep, qty=total_qty)
 
-        response = requests.post(product_url, headers=headers, json=product_data)
-        product = response.json()["product"]
-        product_id = product["id"]
+            response = requests.post(product_url, headers=headers, json=product_data)
+            if response.status_code != 201:
+                print("Product creation failed:", response.text)
+                return
+            product = response.json()["product"]
+            product_id = product["id"]
 
-        set_sy.publish_to_all_channels(product_id,sale=False)
+            set_sy.publish_to_all_channels(product_id, sale=False)
 
-        if response.status_code != 201:
-            print("Product creation failed:", response.text)
-            # continue
-
-        self.set_inventory_metafield(response, 'fixed', qty_ne=qty_ne, qty_ba=qty_ba)
+            self.set_inventory_metafield(response, 'fixed', qty_ne=qty_ne, qty_ba=qty_ba)
+        except Exception:
+            traceback.print_exc()
 
     def create_sample(self):
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=True, sale=True, sas=False)
             qty_sample = P.get_sample_qty()
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P,keep=None,qty=qty_sample[0])
-        except Exception as e:
-            raise print(e)
+            product_data = self.product_post(P, keep=None, qty=qty_sample[0])
 
-        response = requests.post(product_url, headers=headers, json=product_data)
-        product = response.json()["product"]
-        product_id = product["id"]
+            response = requests.post(product_url, headers=headers, json=product_data)
+            if response.status_code != 201:
+                print("Product creation failed:", response.text)
+                return
+            product = response.json()["product"]
+            product_id = product["id"]
 
-        set_sy.publish_to_all_channels(product_id)
+            set_sy.publish_to_all_channels(product_id)
 
-        if response.status_code != 201:
-            print("Product creation failed:", response.text)
-            # continue
-
-        self.set_inventory_metafield(response,'sample', qty_sample=qty_sample)
+            self.set_inventory_metafield(response, 'sample', qty_sample=qty_sample[0])
+        except Exception:
+            traceback.print_exc()
 
     def create_sale_stock(self):
         try:
@@ -121,41 +119,39 @@ class CreatePP:
                 self._to_int(a) + self._to_int(b)
                 for a, b in zip(qty_ne, qty_ba)
             )
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P,keep=keep,qty=total_qty)
-        except Exception as e:
-            raise print(e)
+            product_data = self.product_post(P, keep=keep, qty=total_qty)
 
-        response = requests.post(product_url, headers=headers, json=product_data)
-        product = response.json()["product"]
-        product_id = product["id"]
+            response = requests.post(product_url, headers=headers, json=product_data)
+            if response.status_code != 201:
+                print("Product creation failed:", response.text)
+                return
+            product = response.json()["product"]
+            product_id = product["id"]
 
-        set_sy.publish_to_all_channels(product_id)
+            set_sy.publish_to_all_channels(product_id)
 
-        if response.status_code != 201:
-            print("Product creation failed:", response.text)
-            # continue
-
-        self.set_inventory_metafield(response, 'sale_stock', qty_ne=qty_ne, qty_ba=qty_ba)
+            self.set_inventory_metafield(response, 'sale_stock', qty_ne=qty_ne, qty_ba=qty_ba)
+        except Exception:
+            traceback.print_exc()
 
     def create_o4(self):
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=True, sas=True)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
-            product_data = self.product_post(self.STYLE,self.COLOR,self.SEASON,P)
-        except Exception as e:
-            raise print(e)
+            product_data = self.product_post(P)
 
-        response = requests.post(product_url, headers=headers, json=product_data)
-        product = response.json()["product"]
-        product_id = product["id"]
+            response = requests.post(product_url, headers=headers, json=product_data)
+            if response.status_code != 201:
+                print("Product creation failed:", response.text)
+                return
+            product = response.json()["product"]
+            product_id = product["id"]
 
-        set_sy.publish_to_all_channels(product_id)
+            set_sy.publish_to_all_channels(product_id)
 
-        if response.status_code != 201:
-            print("Product creation failed:", response.text)
-            # continue
-
-        self.set_inventory_metafield(response,'O4')
+            self.set_inventory_metafield(response, 'o4')
+        except Exception:
+            traceback.print_exc()
 
     def product_post(self,P,keep=None,qty=None):
         title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
