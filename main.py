@@ -7,10 +7,10 @@ import post_update_decision as PUD
 from Setup import setup
 
 sheet = setup.sheet
-STYLE= "AVA RAGLAN CHUNKY CREW COTTON".upper()
-COLOR = "Black/Almond Butter".upper()
+STYLE= "ARDEN CROPPED CREW COTTON".upper()
+COLOR = "VENTANA BLUE".upper()
 SEASON = "26 Spring"
-production_type = "fixed"
+production_type = "sample"
 
 if production_type == 'fixed' or production_type == "unfix":
     FP_DC = "FP"
@@ -19,10 +19,11 @@ else:
     FP_DC = "DC"
     SALE =True
 
-create_new, product_id, status =PUD.decide(STYLE,COLOR,FP_DC)
+create_new, product_id, status, description =PUD.decide(STYLE,COLOR,FP_DC)
 
 print("="*50)
 print(create_new,product_id,status)
+print(description)
 
 if __name__ == "__main__":
     styles = []
@@ -32,7 +33,8 @@ if __name__ == "__main__":
 
     if status.upper() == "DRAFT":
         if create_new == True:
-            C = create_pp.CreatePP(STYLE, COLOR, SEASON, SALE)
+            print(f"{STYLE} - {COLOR} - {SALE}")
+            C = create_pp.CreatePP(STYLE, COLOR, SEASON, SALE, description)
             if production_type == 'unfix':
                 link, product_id = C.create_unfix()
             elif production_type == 'fixed':
@@ -51,7 +53,7 @@ if __name__ == "__main__":
                 product_ids.append(product_id)
 
         elif create_new == False:
-            U = update_pp.UpdatePP(STYLE, COLOR, SEASON, product_id, SALE)
+            U = update_pp.UpdatePP(STYLE, COLOR, SEASON, product_id, SALE, description)
             if production_type == 'unfix':
                 link = U.update_unfix()
             elif production_type == 'fixed':

@@ -136,10 +136,12 @@ def fetch():
   df['FP/DC'] = ["DC" if "SALE" in d else "FP" for d in df['Page Title']]
   
   boilerplate = [
-      "Composition: 60% Cotton, 40% Acrylic",
-      "Composition: 76% acrylic, 12% Mohair and 12% Wool",
-      "Sale items are FINAL SALE: No Returns, Refunds or Exchanges.\nWhy is this on Sale? Sometimes a shopper changes their mind leaving us with perfectly fabulous sweaters, or we have extra yarn with which we knit new sweaters.",
-      "Sale items are FINAL SALE: No Returns, Refunds, or Exchanges.\nWhy is this on Sale? These pieces are knit as samples for our wholesale business. They have been handled during sales appointments, but they are carefully inspected before shipping.",
+      "Composition: 60% cotton, 40% acrylic",
+      "Composition: 76% acrylic, 12% mohair and 12% wool",
+      "Sale items are FINAL SALE: No Returns, Refunds or Exchanges.",
+      "Why is this on Sale? Sometimes a shopper changes their mind leaving us with perfectly fabulous sweaters, or we have extra yarn with which we knit new sweaters.",
+      "Sale items are FINAL SALE: No Returns, Refunds, or Exchanges.",
+      "Why is this on Sale? These pieces are knit as samples for our wholesale business. They have been handled during sales appointments, but they are carefully inspected before shipping.",
   ]
   for b in boilerplate:
       df['Description'] = df['Description'].str.replace(b, "", regex=False)

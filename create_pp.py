@@ -18,12 +18,13 @@ SIZE_RANGE = {
 }
 
 class CreatePP:
-    def __init__(self,STYLE,COLOR,SEASON,SALE):
+    def __init__(self,STYLE,COLOR,SEASON,SALE, DESCRIPTION):
         self.STYLE= STYLE
         self.COLOR = COLOR
         self.SEASON = SEASON
         self.sale = SALE
-      
+        self.description = DESCRIPTION
+
     def _to_int(self,v):
         try:
             return int(str(v).strip() or 0)
@@ -259,15 +260,15 @@ class CreatePP:
                 "metafields_global_description_tag":meta_desc,
                 #header
                 "title": title_page,
-                "body_html":thread_comp,
+                "body_html": sale_desc + f"<p>{self.description}</p>" + thread_comp,
                 #right side
                 "vendor": "Wooden Ships",
                 "product_type": _type,
                 "tags": tags,
                 "status": "draft",
-               "template_suffix":template_suffix,
+                "template_suffix":template_suffix,
                 "published_scope": "web",
-
+                "images": P.get_image(),
                 "metafields": [
                     {
                         "namespace": "avalara",

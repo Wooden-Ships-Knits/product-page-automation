@@ -17,6 +17,12 @@ def decide(STYLE,COLOR,FP_DC):
     )
 
     df = pd.DataFrame(values[1:],columns=values[0])
+    df_desc = df[df["Style"].str.contains(STYLE, case=False, na=False)]
+    if df_desc.empty:
+        print("Description does not exist")
+        description = ""
+    else :
+        description =df_desc["Description"].iloc[0]
 
     df = df[
         df["Style"].str.contains(STYLE, case=False, na=False) &
@@ -34,7 +40,7 @@ def decide(STYLE,COLOR,FP_DC):
         create_new = False
         product_id = df['Product ID'].iloc[0]
         status = df['Page Status'].iloc[0]
-    return create_new, product_id,status
+    return create_new, product_id,status, description 
 
 # print(decide())
     

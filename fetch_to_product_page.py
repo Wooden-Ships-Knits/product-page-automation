@@ -48,12 +48,15 @@ class ProductInfo:
             sale_desc = """
             <p><meta charset="utf-8"><span data-mce-fragment="1">Sale items are FINAL SALE: No Returns, Refunds, or Exchanges. </span><span data-mce-fragment="1">&nbsp;</span><br data-mce-fragment="1"><span data-mce-fragment="1">Why is this on Sale? These pieces are knit as samples for our wholesale business. They have been handled during sales appointments, but they are carefully inspected before shipping.</span></p>
             """
-        else:  
+        elif self.sample == True and self.sas == True:  
             sale_desc="""
             <p><meta charset="utf-8"><span data-mce-fragment="1">Sale items are FINAL SALE: No Returns, Refunds or Exchanges. </span><span data-mce-fragment="1"> </span><br data-mce-fragment="1"><span data-mce-fragment="1">Why is this on Sale? Sometimes a shopper changes their mind leaving us with perfectly fabulous sweaters, or we have extra yarn with which we knit new sweaters.</span></p>
             """
+        else:
+            sale_desc= ""
 
-  
+        if self.sale == True:
+            title_page = sale_title_page
         return title_page, sale_title_page, sale_desc, thread_comp
     
     def _master_data(self):
@@ -554,3 +557,31 @@ class ProductInfo:
             key = str(sku).strip().upper()
             barcodes.append(sku_to_barcode.get(key, ""))
         return barcodes
+
+    def get_image(self):
+        values = self._ppa_data('Links storage')
+        df = pd.DataFrame(values[1:],columns=values[0])
+
+        product_name = f" {self.style} "
+        product_name = product_name.replace(" COTTON ", " CT ") \
+                                .replace(" CREW ", " CR ") \
+                                .replace(" CHUNKY ", " CH ") \
+                                .replace(" LIGHTWEIGHT ", " LW ")
+        product_name = product_name.strip()
+        color_raw = self.color.replace("/"," ")
+        file_name_template = f"{product_name.lower().replace(' ','-')}__{color_raw.lower().replace(' ','-')}"
+
+        dfc = df[df["Filename"].str.contains(file_name_template,case=False,na=False)]
+        
+        if dfc.empty:
+            file_name_template_alter = f"{self.style.lower().replace(' ','-')}__{color_raw.lower().replace(' ','-')}"
+            dfc = df[df["Filename"].str.contains(file_name_template_alter,case=False,na=False)]
+        alt = color_raw.lower().replace(" ", "-")
+        images = [
+            {"src": url, "alt": alt}
+            for url in dfc["URL"].tolist()
+        ]
+        if not images:
+            print(f"⚠️  No images found in Links storage for template: {file_name_template} and {file_name_template_alter}")
+
+        return images 

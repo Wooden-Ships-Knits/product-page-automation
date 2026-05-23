@@ -18,13 +18,14 @@ SIZE_RANGE = {
 }
 
 class UpdatePP:
-    def __init__(self,STYLE,COLOR,SEASON,PRODUCT_ID,SALE):
+    def __init__(self,STYLE,COLOR,SEASON,PRODUCT_ID,SALE, DESCRIPTION):
         self.STYLE = STYLE
         self.COLOR = COLOR
         self.SEASON = SEASON
         self.PRODUCT_ID = PRODUCT_ID
         self.sale = SALE
         self.url = f"https://wooden-ships.myshopify.com/admin/api/2024-01/products/{self.PRODUCT_ID}.json"
+        self.description = DESCRIPTION
 
     def _to_int(self,v):
         try:
@@ -38,7 +39,7 @@ class UpdatePP:
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
-
+            title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             variants, options,tags, template_suffix = self.product_post(self.COLOR, P)
             for v in variants:
                 if v["sku"] in sku_to_id:
@@ -47,6 +48,8 @@ class UpdatePP:
             payload = {
                 "product": {
                     "id": self.PRODUCT_ID,
+                    "body_html": sale_desc + f"<p>{self.description}</p>" + thread_comp,
+                    "images": P.get_image(),                    
                     "variants": variants,
                     "options": options,
                     "tags": tags,
@@ -79,6 +82,7 @@ class UpdatePP:
                 self._to_int(a) + self._to_int(b)
                 for a, b in zip(qty_ne, qty_ba)
             )
+            title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
 
@@ -90,6 +94,8 @@ class UpdatePP:
             payload = {
                 "product": {
                     "id": self.PRODUCT_ID,
+                    "body_html": sale_desc + f"<p>{self.description}</p>" + thread_comp,
+                    "images": P.get_image(),                   
                     "variants": variants,
                     "options": options,
                     "tags": tags,
@@ -111,7 +117,7 @@ class UpdatePP:
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
-
+            title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             variants, options,tags, template_suffix = self.product_post(self.COLOR, P,keep=None,qty=qty_sample[0])
             for v in variants:
                 if v["sku"] in sku_to_id:
@@ -120,6 +126,8 @@ class UpdatePP:
             payload = {
                 "product": {
                     "id": self.PRODUCT_ID,
+                    "body_html": sale_desc + f"<p>{self.description}</p>" + thread_comp,
+                    "images": P.get_image(),                    
                     "variants": variants,
                     "options": options,
                     "tags" : tags,
@@ -148,7 +156,7 @@ class UpdatePP:
             barcodes_chosen = P.fetch_barcode(skus_chosen)
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
-
+            title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
             total_qty = sum(
@@ -163,6 +171,8 @@ class UpdatePP:
             payload = {
                 "product": {
                     "id": self.PRODUCT_ID,
+                    "body_html": sale_desc + f"<p>{self.description}</p>" + thread_comp,
+                    "images": P.get_image(),
                     "variants": variants,
                     "options": options,
                     "tags":tags,
@@ -183,7 +193,7 @@ class UpdatePP:
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
-
+            title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             variants, options,tags,template_suffix = self.product_post(self.COLOR, P)
             for v in variants:
                 if v["sku"] in sku_to_id:
@@ -192,6 +202,8 @@ class UpdatePP:
             payload = {
                 "product": {
                     "id": self.PRODUCT_ID,
+                    "body_html": sale_desc + f"<p>{self.description}</p>" + thread_comp,
+                    "images": P.get_image(),
                     "variants": variants,
                     "options": options,
                     "tags":tags,
@@ -270,20 +282,41 @@ class UpdatePP:
             except (TypeError, ValueError):
                 return 0
 
+        ne_first_choice = os.getenv("NE_First_Choice_ID")
+        bali_stock = os.getenv("Bali_Stock_ID")
+        ne_sample = os.getenv("NE_Sample_ID")
+        bali_to_produce = os.getenv("Bali_To_Produce_ID")
+
         if production_type in ('fixed', 'sale_stock'):
-            ne_loc = os.getenv("NE_First_Choice_ID")
-            bali_loc = os.getenv("Bali_Stock_ID")
             per_variant_locations = [
-                [(ne_loc, _to_int(qty_ne[i])), (bali_loc, _to_int(qty_ba[i]))]
+                [
+                    (ne_first_choice, _to_int(qty_ne[i])),
+                    (bali_stock, _to_int(qty_ba[i])),
+                    (ne_sample, 0),
+                    (bali_to_produce, 0),
+                ]
                 for i in range(len(variants))
             ]
+        elif production_type == 'sample':
+            per_variant_locations = [
+                [
+                    (ne_sample, qty_sample),
+                    (ne_first_choice, 0),
+                    (bali_stock, 0),
+                    (bali_to_produce, 0),
+                ]
+                for _ in variants
+            ]
         else:
-            if production_type == 'sample':
-                loc = os.getenv("NE_Sample_ID")
-                per_variant_locations = [[(loc, qty_sample)] for _ in variants]
-            else:
-                loc = os.getenv("Bali_To_Produce_ID")
-                per_variant_locations = [[(loc, 5000)] for _ in variants]
+            per_variant_locations = [
+                [
+                    (bali_to_produce, 5000),
+                    (ne_first_choice, 0),
+                    (bali_stock, 0),
+                    (ne_sample, 0),
+                ]
+                for _ in variants
+            ]
 
         for variant, locations in zip(variants, per_variant_locations):
             inventory_item_id = variant["inventory_item_id"]

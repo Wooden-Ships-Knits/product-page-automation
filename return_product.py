@@ -9,12 +9,12 @@ load_dotenv(Path(__file__).parent / "Setup/.env", override=True)
 import os
 import pandas as pd
 from Setup import set_sy,setup
-import update_pp
+import update_pp,create_pp
 import post_update_decision as PUD
 from datetime import date
 sheet = setup.sheet
 
-worksheet_name = f'{date.today().strftime("%d %B, %Y")}'
+worksheet_name = f'{date.today().strftime("%B %d, %Y")}'
 
 values = setup._get_sheet_values(
         sheet_id=os.getenv("RETURN_ID"),
@@ -27,9 +27,15 @@ try:
     zz_columns = dfs.columns[dfs.columns.str.contains("ZZ")]
 
     dfs = dfs[~(dfs[zz_columns] == "ZZ").any(axis=1)]
-
+    dfs = dfs.drop_duplicates(subset=['Style', 'Color'])
+    
     def _first(x):
         return x.iloc[0] if hasattr(x, 'iloc') else x
+
+    styles = []
+    colors = []
+    product_ids = []
+    FP_DCs = []
 
     for idx, row in dfs.iterrows():
         sheet_row = idx + 7 
@@ -60,11 +66,32 @@ try:
             FP_DC = None
             SALE = False
             continue
-        create_new, product_id,status= PUD.decide(STYLE, COLOR, FP_DC)
+        create_new, PRODUCT_ID,status= PUD.decide(STYLE, COLOR, FP_DC)
         if create_new:
-            print('no product page found, create new one.')
+            print('no product page found, creating new one......')
+            C = create_pp.CreatePP(STYLE, COLOR, SEASON, SALE)
+            if FP_DC == "FP":
+                print("proceed creating full price product")
+                link, product_id = C.create_fixed()
+            elif FP_DC == "DC":
+                print("proceed creating sale stock product")
+                link, product_id = C.create_sale_stock()
+            else:
+                print("can't proceed")
+                continue
+            if link:
+                sheet.values().update(
+                    spreadsheetId=os.getenv("RETURN_ID"),
+                    range=f"'{worksheet_name}'!R{sheet_row}",
+                    valueInputOption="RAW",
+                    body={"values": [[link]]}
+                ).execute()
+                styles.append(STYLE)
+                colors.append(COLOR)
+                product_ids.append(product_id)
+                FP_DCs.append(FP_DC)
         else:
-            U = update_pp.UpdatePP(STYLE,COLOR,SEASON,product_id,SALE)
+            U = update_pp.UpdatePP(STYLE,COLOR,SEASON,PRODUCT_ID,SALE)
 
             if status.upper()== 'DRAFT':
                 if FP_DC =="FP":
@@ -85,7 +112,30 @@ try:
                 ).execute()
 
             else:
-                print('this is an active product, retracting....') 
+                print('this is an active product, retracting....')
+
+    if styles:
+        values = setup._get_sheet_values(
+            sheet_id="1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk",
+            worksheet_name='PP SY LIST',
+            use_all_values=True
+        )
+        df = pd.DataFrame(values[1:], columns=values[0])
+        df = df[df['Style'].fillna('').astype(str).str.strip() == ""]
+        if df.empty:
+            print("PP SY LIST has no empty Style row to append to — aborting write")
+        else:
+            start_idx = df.index[0]
+            new_rows = [
+                [s, c, pid, "DRAFT", fp]
+                for s, c, pid, fp in zip(styles, colors, product_ids, FP_DCs)
+            ]
+            sheet.values().update(
+                spreadsheetId="1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk",
+                range=f"'PP SY LIST'!A{start_idx + 2}",
+                valueInputOption="RAW",
+                body={"values": new_rows}
+            ).execute()
 
 except:
     traceback.print_exc()

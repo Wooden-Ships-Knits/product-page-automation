@@ -93,12 +93,21 @@ def generate_tags(STYLE, COLOR): #loook for better method
     return tags
 
 def additional_tags(tags,sizes,qty):
+    if qty is not None:
+        try:
+            qty = int(str(qty).strip() or 0)
+        except (TypeError, ValueError):
+            qty = 0
     if qty==1:
         tags+="LAST ONE LEFT!, "
         tmp_suffix = "nearly-gone"
-    elif qty <6:
-        tags+= "NEARLY GONE!, "
-        tmp_suffix = "nearly-gone"
+    elif qty != None:
+        print(qty)
+        if qty <6:
+            tags+= "NEARLY GONE!, "
+            tmp_suffix = "nearly-gone"
+        else:
+            tmp_suffix = None
     else: tmp_suffix = None
     if "X/S" in sizes:
         tags+= "FILTERBY-X/S, "
