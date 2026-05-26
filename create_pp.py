@@ -31,6 +31,23 @@ class CreatePP:
         except (TypeError, ValueError):
             return 0
 
+    def _attach_variant_image(self, product):
+        images = product.get("images", [])
+        variants = product.get("variants", [])
+        if not images or not variants:
+            return
+        image_id = images[0]["id"]
+        payload = {
+            "product": {
+                "id": product["id"],
+                "variants": [{"id": v["id"], "image_id": image_id} for v in variants],
+            }
+        }
+        requests.put(
+            f"https://wooden-ships.myshopify.com/admin/api/2024-01/products/{product['id']}.json",
+            headers=headers, json=payload,
+        )
+
     def create_unfix(self):
         product_id = None
         try:
@@ -44,6 +61,7 @@ class CreatePP:
                 return None, None
             product = response.json()["product"]
             product_id = product["id"]
+            self._attach_variant_image(product)
 
             set_sy.publish_to_all_channels(product_id, sale=False)
 
@@ -83,6 +101,7 @@ class CreatePP:
                 return None, None
             product = response.json()["product"]
             product_id = product["id"]
+            self._attach_variant_image(product)
 
             set_sy.publish_to_all_channels(product_id, sale=False)
 
@@ -107,6 +126,7 @@ class CreatePP:
                 return None, None
             product = response.json()["product"]
             product_id = product["id"]
+            self._attach_variant_image(product)
 
             set_sy.publish_to_all_channels(product_id)
 
@@ -145,6 +165,7 @@ class CreatePP:
                 return None, None
             product = response.json()["product"]
             product_id = product["id"]
+            self._attach_variant_image(product)
 
             set_sy.publish_to_all_channels(product_id)
 
@@ -168,6 +189,7 @@ class CreatePP:
                 return None, None
             product = response.json()["product"]
             product_id = product["id"]
+            self._attach_variant_image(product)
 
             set_sy.publish_to_all_channels(product_id)
 
@@ -190,14 +212,21 @@ class CreatePP:
         print(f"meta_desc: {meta_desc}")
         print(f"url: {url}")
 
-        sizes,weights = P.get_weight()
-        default_barcodes, default_skus = P.get_sku_barcode()
+        sizes = list(P.get_sizes())
+        sizes_im, weights_im = P.get_weight()
+        weight_by_size = dict(zip(sizes_im, weights_im))
+        weights = [weight_by_size.get(s, 0) for s in sizes]
+
+        need_defaults = skus is None or barcodes is None
+        default_barcodes, default_skus = P.get_sku_barcode() if need_defaults else ([], [])
 
         if keep is not None:
-            sizes    = [sizes[i]    for i in keep]
-            weights  = [weights[i]  for i in keep]
-            default_skus = [default_skus[i] for i in keep]
-            default_barcodes = [default_barcodes[i] for i in keep]
+            sizes   = [sizes[i]   for i in keep]
+            weights = [weights[i] for i in keep]
+            if default_skus:
+                default_skus = [default_skus[i] for i in keep]
+            if default_barcodes:
+                default_barcodes = [default_barcodes[i] for i in keep]
 
         skus = skus if skus is not None else default_skus
         barcodes = barcodes if barcodes is not None else default_barcodes

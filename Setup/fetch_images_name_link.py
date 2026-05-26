@@ -45,7 +45,7 @@ query ($cursor: String, $q: String) {
 """
 
 
-def list_shop_files(query=None):
+def list_shop_files(query="filename:wooden-ships-knits*"):
     """
     Fetch all MediaImage files from Shopify Files.
     Returns a list of dicts: {"id", "url", "filename", "alt"}.
@@ -84,17 +84,12 @@ def list_shop_files(query=None):
         if not data["pageInfo"]["hasNextPage"]:
             break
         cursor = data["pageInfo"]["endCursor"]
-    return files
-
-
-if __name__ == "__main__":
-    matches = list_shop_files(query="filename:wooden-ships-knits*")
-    matches = [f for f in matches if f["filename"].endswith(".webp")]
-
+        
+    files = [f for f in files if f["filename"].endswith(".webp")]
     header = ["ID", "URL", "Filename", "Alt"]
     rows = [
         [m["id"], m["url"], m["filename"], m.get("alt") or ""]
-        for m in matches
+        for m in files
     ]
 
     sheet.values().clear(
@@ -109,5 +104,9 @@ if __name__ == "__main__":
         body={"values": [header] + rows}
     ).execute()
     print(f"Wrote {len(rows)} files to 'Links storage'")
+
+if __name__ == "__main__":
+    list_shop_files()
+
 
     

@@ -9,7 +9,8 @@ from Setup import tags_generator as t, generic_color_generator as gcg, setup
 from datetime import datetime
 load_dotenv(Path(__file__).parent / "Setup/.env", override=True)
 sheet = setup.sheet
-
+import requests
+headers = setup.HEADERS
 """
 This is for fetching all the information needed for a style 
 """
@@ -24,8 +25,8 @@ class ProductInfo:
         self.seasonal_letter = season.split()[1][0]
         self.sas = sas
         self.season_code = self.seasonal_letter+season.split()[0]           # 26 SPRING -> S26
-        # self.IM_path = f"/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com/Shared drives/PTIF SERVER/Collection/{self.season}/IM/{self.season_code} IM MASTER.xlsx"
-        self.IM_path = f"Copy of {self.season_code} IM MASTER.xlsx"
+        self.IM_path = f"/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com/Shared drives/PTIF SERVER/Collection/{self.season}/IM/{self.season_code} IM MASTER.xlsx"
+        # self.IM_path = f"Copy of {self.season_code} IM MASTER.xlsx"
         self.sizes = ["X/S (2/4)", "S/M (6/8)", "M/L (10/12)", "X/L (14/16)"]
         if self.seasonal_letter=="S":
             self.cat_code = f"K{(int(season.split()[0])+ 2)*2}"
@@ -127,6 +128,10 @@ class ProductInfo:
         sizes = df_im["DESCRIPTION"].str.split(" - ").str[-1].tolist()
         return sizes, weights
 
+    def get_sizes(self):
+        return ('X/S','S/M','M/L','X/L')
+        ## this was added in newer vesion
+
     def get_sku_barcode(self):
         if self.sample ==True:
             sheet_name = "SAMPLE UPC LIST"
@@ -146,9 +151,9 @@ class ProductInfo:
             df["Color"].str.contains(self.color, case=False, na=False)## need an adjustment for this when we 
         ]
         if self.sas ==True:
-            df["Lineitem sku"].str.contains(f"P{self.cat_code}", case=False, na=False)
+            df= df[df["Lineitem sku"].str.contains(f"P{self.cat_code}", case=False, na=False)]
         else:
-            df["Lineitem sku"].str.contains(self.cat_code, case=False, na=False)
+           df = df[df["Lineitem sku"].str.contains(self.cat_code, case=False, na=False)]
         return df["UPC Barcode"].tolist(), df["Lineitem sku"].tolist()
     
     def get_generic_color(self):
@@ -582,6 +587,13 @@ class ProductInfo:
             for url in dfc["URL"].tolist()
         ]
         if not images:
-            print(f"⚠️  No images found in Links storage for template: {file_name_template} and {file_name_template_alter}")
-
+            print(f"!!!! No images found in Links storage for template: {file_name_template} and {file_name_template_alter}!!!")
+        
         return images 
+
+        df_im = self._IM_data()
+        df_im = df_im[df_im["DESCRIPTION"].str.contains(self.style, case=False, na=False)&
+            df_im["WS TAG COLOR"].str.contains(self.colors[0], case=False, na=False)]
+
+        weights = (df_im["PRE COMPONENT WT (PC WT)"].astype(float) * 1000).round().astype(int).tolist()
+        return weights

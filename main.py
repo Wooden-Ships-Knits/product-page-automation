@@ -1,72 +1,86 @@
 import Setup.fetch_product_id_new as fetch
 import fetch_to_product_page as ftp
-import pandas as pd 
+import pandas as pd
 import create_pp
 import update_pp
 import post_update_decision as PUD
 from Setup import setup
-
 sheet = setup.sheet
-STYLE= "ARDEN CROPPED CREW COTTON".upper()
-COLOR = "VENTANA BLUE".upper()
 SEASON = "26 Spring"
-production_type = "sample"
 
-if production_type == 'fixed' or production_type == "unfix":
-    FP_DC = "FP"
-    SALE = False
-else:
-    FP_DC = "DC"
-    SALE =True
+data = [
+    {
+    "Styles": "BEACH V COTTON".upper(), 
+    "Colors": "BREAKER WHITE/AZURE SLATE".upper(), 
+    "Production": "fixed"
+        },
+]
 
-create_new, product_id, status, description =PUD.decide(STYLE,COLOR,FP_DC)
 
-print("="*50)
-print(create_new,product_id,status)
-print(description)
-
-if __name__ == "__main__":
+def production(data):
     styles = []
     colors = []
     product_ids = []
     FP_DCs = []
 
-    if status.upper() == "DRAFT":
-        if create_new == True:
-            print(f"{STYLE} - {COLOR} - {SALE}")
-            C = create_pp.CreatePP(STYLE, COLOR, SEASON, SALE, description)
-            if production_type == 'unfix':
-                link, product_id = C.create_unfix()
-            elif production_type == 'fixed':
-                link, product_id = C.create_fixed()
-            elif production_type == 'sale_stock':
-                link, product_id = C.create_sale_stock()
-            elif production_type == 'o4':
-                link, product_id = C.create_o4()
-            elif production_type == 'sample':
-                link, product_id = C.create_sample()
+    for d in data:
+        STYLE = d['Styles'].upper()
+        COLOR = d['Colors'].upper()
+        production_type = d['Production']
 
-            if link is not None:
-                styles.append(STYLE)
-                colors.append(COLOR)
-                FP_DCs.append(FP_DC)
-                product_ids.append(product_id)
+        if production_type == 'fixed' or production_type == "unfix":
+            FP_DC = "FP"
+            SALE = False
+        else:
+            FP_DC = "DC"
+            SALE = True
 
-        elif create_new == False:
-            U = update_pp.UpdatePP(STYLE, COLOR, SEASON, product_id, SALE, description)
-            if production_type == 'unfix':
-                link = U.update_unfix()
-            elif production_type == 'fixed':
-                link = U.update_fixed()
-            elif production_type == 'sale_stock':
-                link = U.update_sale_stock()
-            elif production_type == 'o4':
-                link = U.update_o4()
-            elif production_type == 'sample':
-                link = U.update_sample()
+        create_new, product_id, status, description = PUD.decide(STYLE, COLOR, FP_DC)
 
-    else:
-        print(f'{STYLE} - {COLOR} not found or an active pp. skipping')
+        print("=" * 50)
+        print(create_new, product_id, status)
+        print(description)
+
+        link = None
+
+        if status.upper() == "DRAFT":
+            if create_new == True:
+                print(f"{STYLE} - {COLOR} - {SALE}")
+                C = create_pp.CreatePP(STYLE, COLOR, SEASON, SALE, description)
+                if production_type == 'unfix':
+                    link, product_id = C.create_unfix()
+                elif production_type == 'fixed':
+                    link, product_id = C.create_fixed()
+                elif production_type == 'sale_stock':
+                    link, product_id = C.create_sale_stock()
+                elif production_type == 'o4':
+                    link, product_id = C.create_o4()
+                elif production_type == 'sample':
+                    link, product_id = C.create_sample()
+
+                if link is not None:
+                    styles.append(STYLE)
+                    colors.append(COLOR)
+                    FP_DCs.append(FP_DC)
+                    product_ids.append(product_id)
+
+            elif create_new == False:
+                U = update_pp.UpdatePP(STYLE, COLOR, SEASON, product_id, SALE, description)
+                if production_type == 'unfix':
+                    link = U.update_unfix()
+                elif production_type == 'fixed':
+                    link = U.update_fixed()
+                elif production_type == 'sale_stock':
+                    link = U.update_sale_stock()
+                elif production_type == 'o4':
+                    link = U.update_o4()
+                elif production_type == 'sample':
+                    link = U.update_sample()
+
+        else:
+            print(f'{STYLE} - {COLOR} not found or an active pp. skipping')
+
+        print(link)
 
     if styles:
         values = setup._get_sheet_values(
@@ -81,8 +95,8 @@ if __name__ == "__main__":
         else:
             start_idx = df.index[0]
             new_rows = [
-                [ style, color, pid, "DRAFT", fpdc]
-                for  style, color, pid, fpdc in zip(styles, colors,  product_ids, FP_DCs)
+                [style, color, pid, "DRAFT", fpdc]
+                for style, color, pid, fpdc in zip(styles, colors, product_ids, FP_DCs)
             ]
             sheet.values().update(
                 spreadsheetId="1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk",
@@ -90,9 +104,7 @@ if __name__ == "__main__":
                 valueInputOption="RAW",
                 body={"values": new_rows}
             ).execute()
-    
-    print(link)
 
 
-
-
+if __name__ == "__main__":
+    production(data)

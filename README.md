@@ -1,6 +1,6 @@
 # PPA — Product Page Automation
 
-Creates and updates Wooden Ships product pages on Shopify from internal source-of-truth data (IM Master Excel, PPA Google Sheets, Master Data Sheet, UPC list). One style-color goes in, one fully-built (or fully-updated) product page comes out — title, SEO, variants, size chart, weights, SKUs, barcodes, tags, prices, and per-location inventory.
+Creates and updates Wooden Ships product pages on Shopify from internal source-of-truth data (IM Master Excel, PPA Google Sheets, Master Data Sheet, UPC list). One style-color goes in, one fully-built (or fully-updated) product page comes out — title, SEO, variants, size chart, weights, SKUs, barcodes, tags, prices, per-location inventory, and a per-style description.
 
 For deeper background on inputs and the original redesign sketch, see [PPA_FLOW.md](PPA_FLOW.md) and [PPA_DATA_PREP.md](PPA_DATA_PREP.md). This README documents the **current** active flow across [create_pp.py](create_pp.py), [update_pp.py](update_pp.py), [post_update_decision.py](post_update_decision.py), [return_product.py](return_product.py), and [fetch_to_product_page.py](fetch_to_product_page.py).
 
@@ -16,7 +16,7 @@ pip install -r Lrequirements.txt
 
 You also need:
 
-- `Setup/.env` with at least: `CLIENT_ID`, `CLIENT_SECRET` (Shopify), `PPA_SHEET_ID`, `PPA_ID`, `MASTER_DATA_ID`, `RETURN_ID`, and the Shopify location IDs `NE_First_Choice_ID`, `NE_Sample_ID`, `Bali_Stock_ID`, `Bali_To_Produce_ID`.
+- `Setup/.env` with at least: `CLIENT_ID`, `CLIENT_SECRET` (Shopify), `PPA_SHEET_ID`, `SKU_UPC_ID`, `MASTER_DATA_ID`, `RETURN_ID`, and the Shopify location IDs `NE_First_Choice_ID`, `NE_Sample_ID`, `Bali_Stock_ID`, `Bali_To_Produce_ID`.
 - `credentials/dialy-report-automation-e20c53e67542.json` — Google service-account key (already gitignored).
 - The current season's `Copy of <S26|F26> IM MASTER.xlsx` in the project root.
 
@@ -29,10 +29,10 @@ You also need:
 ```
 PPA/
 ├── main.py                       Manual single-style entry — picks create vs update via PUD.decide
-├── return_product.py             Bulk entry — iterates the Master Grid of Return sheet and updates
+├── return_product.py             Bulk entry — iterates today's Master Grid of Return tab and creates/updates
 ├── create_pp.py                  CreatePP class — 5 create_* product-type methods + product_post + set_inventory_metafield
 ├── update_pp.py                  UpdatePP class — 5 update_* methods mirroring create_pp (PUT instead of POST)
-├── post_update_decision.py       decide() — looks up PP SY LIST to choose create vs update + returns product_id/status
+├── post_update_decision.py       decide() — looks up PP SY LIST to choose create vs update + returns product_id/status/description
 ├── fetch_to_product_page.py      ProductInfo class — all data fetching/derivation lives here
 ├── pp_status.py                  Scratch / WIP (currently just imports)
 ├── deletion_products.py          One-off product cleanup
@@ -56,21 +56,30 @@ All five exist in **both** [create_pp.py](create_pp.py) (`CreatePP`) and [update
 |--------------|----------|--------|-------|----------------------------------------|----------------------------------------------------|
 | `unfix`      | F        | F      | F     | Full IM master template (4 sizes)      | `Bali_To_Produce_ID` (placeholder qty 5000)        |
 | `fixed`      | F        | F      | F     | **Only sizes with NE+Bali stock > 0**  | `NE_First_Choice_ID` + `Bali_Stock_ID` (real qty)  |
-| `sample`     | T        | T      | F     | S/M only (filtered in `get_weight()`)  | `NE_Sample_ID` (placeholder qty 5000)              |
+| `sample`     | T        | T      | F     | S/M only (filtered in `get_weight()`)  | `NE_Sample_ID` (qty from `NE SAMPLE STOCK`)        |
 | `sale_stock` | F        | T      | F     | **Only sizes with NE+Bali stock > 0**  | `NE_First_Choice_ID` + `Bali_Stock_ID` (real qty)  |
 | `o4`         | F        | T      | T     | Full IM master template (4 sizes)      | `Bali_To_Produce_ID` (placeholder qty 5000)        |
 
 The `sample` / `sale` / `sas` flags propagate into pricing, tags, SEO copy, body description, and SKU sheet choice via `ProductInfo`.
 
+**Inventory-posting divergence between create and update:**
+- `CreatePP.set_inventory_metafield` posts inventory **only to the relevant location(s)** for the type (so e.g. `unfix` touches only `Bali_To_Produce_ID`).
+- `UpdatePP.set_inventory_metafield` posts to **all four locations** for every variant, zeroing out the irrelevant ones. This effectively clears stock from any location not in the type's "relevant" list. It's an intentional reset on update, but the two helpers are no longer symmetric — keep this in mind if you ever consolidate them.
+
 ---
 
 ## 4. Create vs update — how the decision is made
 
-Both [main.py](main.py) and [return_product.py](return_product.py) consult [post_update_decision.py](post_update_decision.py) `decide(STYLE, COLOR, FP_DC)` before doing anything:
+Both [main.py](main.py) and [return_product.py](return_product.py) consult [post_update_decision.py](post_update_decision.py) `decide(STYLE, COLOR, FP_DC)` before doing anything. It returns **four** values:
+
+```python
+create_new, product_id, status, description = PUD.decide(STYLE, COLOR, FP_DC)
+```
 
 - Reads the `PP SY LIST` tab of the PPA sheet.
-- Filters rows whose `Style` and `Color` match (case-insensitive) and whose `FP/DC` column equals `"FP"` or `"DC"`.
-- If **no match** → `create_new=True`; caller routes to `CreatePP`.
+- Looks up `description` from the first row where `Style` contains `STYLE` (no Color or FP/DC filter — the description column is per-style, shared across colorways).
+- Filters rows whose `Style` and `Color` match (case-insensitive substring) **and** whose `FP/DC` column equals `"FP"` or `"DC"`.
+- If **no match** → `create_new=True`, `product_id=""`, `status="DRAFT"` (forced); caller routes to `CreatePP`.
 - If a match exists → `create_new=False`, returns the existing `Product ID` and `Page Status` (e.g. `DRAFT` / `ACTIVE`); caller routes to `UpdatePP`.
 
 `FP_DC` mapping (set by the caller):
@@ -78,10 +87,19 @@ Both [main.py](main.py) and [return_product.py](return_product.py) consult [post
 - `fixed`, `unfix` → `"FP"` (full price product line) → `SALE=False`
 - `sale_stock`, `sample`, `o4` → `"DC"` (discounted / sale line) → `SALE=True`
 
-The caller also sets a `SALE` boolean alongside `FP_DC` and passes it into both `CreatePP(STYLE, COLOR, SEASON, SALE)` and `UpdatePP(STYLE, COLOR, SEASON, PRODUCT_ID, SALE)`. This boolean drives:
+The caller also sets a `SALE` boolean alongside `FP_DC` and passes it, along with the `description`, into the constructors:
+
+```python
+CreatePP(STYLE, COLOR, SEASON, SALE, DESCRIPTION)
+UpdatePP(STYLE, COLOR, SEASON, PRODUCT_ID, SALE, DESCRIPTION)
+```
+
+The boolean drives:
 
 - `template_suffix` selection in `product_post` — `'sale-item'` when `SALE=True`, `'default'` when `SALE=False` (only used as fallback when `tags_generator.additional_tags` doesn't return its own suffix).
 - The `sale=` kwarg passed to `set_sy.publish_to_all_channels(product_id, sale=...)` — `sale=True` excludes Pinterest, `sale=False` includes all channels.
+
+The `description` is injected into `body_html` between the sale-disclaimer block (if any) and the thread-composition paragraph: `sale_desc + f"<p>{description}</p>" + thread_comp`. It's used on both create and update.
 
 **The current rule is to only act on `DRAFT` products.** `ACTIVE` products are skipped so we never overwrite a live page. This is enforced in both `main.py` and `return_product.py`.
 
@@ -106,7 +124,7 @@ PUD.decide(STYLE, COLOR, FP_DC)  →  create_new=True  →  CreatePP.create_<typ
    │                                                  empty match → ([0,0,0,0], ["","","",""])
    │     combined = qty_ne + qty_ba (per size)
    │     keep = indices where combined > 0
-   │     if not keep:  skip product (no stock)
+   │     if not keep:  return (None, None)         ← skip product, no stock
    │     skus_chosen[i]     = skus_ne[i] if non-blank else skus_ba[i]   ← NE primary, Bali fallback
    │     barcodes_chosen    = P.fetch_barcode(skus_chosen)              ← lookup in PRODUCTION UPC LIST
    │     filter qty_ne / qty_ba by keep
@@ -127,21 +145,27 @@ PUD.decide(STYLE, COLOR, FP_DC)  →  create_new=True  →  CreatePP.create_<typ
    │     ├── skus     = skus_kwarg     if provided else default_skus
    │     ├── barcodes = barcodes_kwarg if provided else default_barcodes
    │     └── assemble variants + options + Shopify product payload
+   │         body_html = sale_desc + f"<p>{self.description}</p>" + thread_comp
    │
    ├── POST /admin/api/2026-01/products.json     ← creates the draft product
    │     └── on non-201 / no-stock / exception:  return (None, None)
    │
-   ├── set_sy.publish_to_all_channels(product_id, sale=self.sale) ← Pinterest is excluded when sale=True
+   ├── self._attach_variant_image(product)
+   │     PUT /admin/api/2024-01/products/{id}.json with variants=[{id, image_id=first_image_id}, ...]
+   │     — assigns the first product image as each variant's image (no new file uploads — ID reference only)
+   │     — silent no-op if product has no images or no variants
    │
-   ├── set_inventory_metafield(response, type, qty_ne=, qty_ba=)
+   ├── set_sy.publish_to_all_channels(product_id, sale=...)
+   │     │   — create_unfix / create_fixed pass sale=False (always full-price channels)
+   │     │   — create_sample / create_sale_stock / create_o4 use the default sale=True (excludes Pinterest)
+   │
+   ├── set_inventory_metafield(response, type, qty_ne=, qty_ba=, qty_sample=)
    │     │
-   │     ├── for each variant:
-   │     │     ├── [fixed/sale_stock] POST inventory to NE_First_Choice_ID with qty_ne[i]
-   │     │     │                       POST inventory to Bali_Stock_ID with qty_ba[i]
-   │     │     ├── [unfix/o4]         POST inventory 5000 to Bali_To_Produce_ID
-   │     │     ├── [sample]           POST inventory 5000 to NE_Sample_ID
-   │     │     └── POST avalara taxcode metafield on the variant
-   │     └── (no return — fire and forget)
+   │     ├── per variant, post inventory ONLY to the type's relevant location(s):
+   │     │     ├── [fixed/sale_stock] NE_First_Choice_ID with qty_ne[i] + Bali_Stock_ID with qty_ba[i]
+   │     │     ├── [unfix/o4]         Bali_To_Produce_ID with 5000
+   │     │     └── [sample]           NE_Sample_ID with qty_sample
+   │     └── per variant, POST avalara taxcode metafield
    │
    └── return (link, product_id)   ← link is the Shopify admin URL; caller can append to PP SY LIST
 ```
@@ -166,27 +190,36 @@ PUD.decide(STYLE, COLOR, FP_DC)  →  create_new=False  →  UpdatePP.update_<ty
    │       if v["sku"] in sku_to_id: v["id"] = sku_to_id[v["sku"]]   ← keeps Shopify treating it as an update
    │
    ├── PUT /admin/api/2024-01/products/{id}.json
-   │     payload = {"product": {"id": ..., "variants": [...], "options": [...], "tags": ..., "template_suffix": ...}}
+   │     payload = {"product": {"id", "body_html", "images", "variants", "options", "tags", "template_suffix"}}
+   │     — body_html (with refreshed description) and images ARE replaced on every update
+   │     — title and status are NOT in the payload, so a DRAFT product stays DRAFT with its existing title
    │
-   ├── set_inventory_metafield(response, type, qty_ne=, qty_ba=)
-   │     (same per-variant inventory + tax metafield posting as create;
-   │      for `sample`, qty_sample[0] is extracted before passing — qty_sample is a 1-element list)
+   ├── self._attach_variant_image(response)
+   │     PUT /admin/api/2024-01/products/{id}.json with variants=[{id, image_id=first_image_id}, ...]
+   │     — assigns the first product image as each variant's image (no new file uploads — ID reference only)
+   │     — backfills variant→image on products created before this step existed
+   │
+   ├── set_inventory_metafield(response, type, qty_ne=, qty_ba=, qty_sample=)
+   │     — unlike the create-side helper, the update-side posts to ALL FOUR locations per variant,
+   │       zeroing out the locations irrelevant to the type. This wipes any stale stock from
+   │       previous types. The taxcode metafield POST is the same.
    │
    └── return link   ← Shopify admin URL built from self.PRODUCT_ID; caller can log to a sheet
 ```
 
-Shopify's PUT semantics handle the reconciliation:
+Shopify's PUT semantics handle the variant reconciliation:
 
 - Variant **with** `id` (SKU matched an existing one) → update in place.
 - Variant **without** `id` (new SKU) → create.
 - Existing variant **omitted** from the array → deleted.
 
-Status, title, description, images, tags, and any other field not included in the PUT body are left untouched, so a `DRAFT` product stays a `DRAFT`.
+`status` and `title` are not in the PUT body, so a `DRAFT` product stays a `DRAFT` with its existing title.
 
 ### Key derived fields
 
 - **Sizes** are X/S, S/M, M/L, X/L. The `SIZE_RANGE` constant maps each to its body-size label (e.g. `S/M → (6-8)`), used for the Shopify variant option text.
 - **Size chart**: comes from `MASTER_DATA_ID`. `DEV | XL | (Y/N)` flag toggles whether X/L is included. The chart currently always renders **all sizes from master data**, even when stock-based filtering drops variants — by design (the chart is a reference, not a stock listing).
+- **Description**: pulled in `PUD.decide()` from the `Description` column of `PP SY LIST` (first row where `Style` matches) and injected into `body_html` as `<p>{description}</p>` between the sale disclaimer and the thread-composition paragraph. Editing the cell in the sheet and re-running an update will refresh the description on Shopify.
 - **Generic color**: looked up in the `Color list` tab of the PPA sheet. If absent, GPT proposes one and writes it back to the sheet for next time.
 - **Prices** use a cascading fallback: `PB ADJUSTED ...` → `LATEST ...` → `IM PRICE`.
 - **SKU source depends on production type**:
@@ -209,12 +242,12 @@ Status, title, description, images, tags, and any other field not included in th
 |-----------------------------------------|-------------------------------------------------------|
 | `Copy of <season> IM MASTER.xlsx`       | Per-size weights, size labels, IM price               |
 | Master Data sheet (`MASTER_DATA_ID`)    | Size chart, XL flag, printed flag, price columns      |
-| PPA sheet (`PPA_SHEET_ID`)              | `Color list` (generic colors), `NE STOCK`, `BALI STOCK`, `NE SAMPLE STOCK`, `PP SY LIST` (the create-vs-update lookup) |
-| UPC sheet (`PPA_ID`)                    | `PRODUCTION UPC LIST` / `SAMPLE UPC LIST` (SKUs + barcodes) |
+| PPA sheet (`PPA_SHEET_ID`)              | `Color list` (generic colors), `NE STOCK`, `BALI STOCK`, `NE SAMPLE STOCK`, `Links storage` (images), `PP SY LIST` (the create-vs-update lookup + per-style `Description`) |
+| UPC sheet (`SKU_UPC_ID`)                | `PRODUCTION UPC LIST` / `SAMPLE UPC LIST` (SKUs + barcodes) |
 | Master Grid of Return (`RETURN_ID`)     | Daily worksheet driving `return_product.py` (which styles to update today, FP vs sale flag) |
 | Shopify Admin API (`2024-01` + `2026-01`) | Product create/update, inventory, metafields, publishing |
 
-Sheet reads go through `Setup.setup._get_sheet_values` which caches by `(sheet_id, worksheet, range)` for the life of the process. Excel reads are similarly cached. So inside one run the same sheet is fetched once.
+Sheet reads go through `Setup.setup._get_sheet_values` which caches by `(sheet_id, worksheet, range_name, use_all_values)` for the life of the process. Excel reads are similarly cached. So inside one run the same sheet is fetched once.
 
 ---
 
@@ -232,7 +265,8 @@ Split into two cases:
 **Placeholder case (`unfix`, `sample`, `o4`)**
 
 - All 4 sizes (or just S/M for `sample`) always created.
-- Inventory set to a flat `5000` at a single location, signalling "to-be-produced" supply.
+- `unfix` / `o4`: inventory set to flat `5000` at `Bali_To_Produce_ID`, signalling "to-be-produced" supply.
+- `sample`: inventory set to whatever `get_sample_qty()` returns at `NE_Sample_ID`.
 
 > **Order assumption**: `get_NE_qty` (returns `qty, skus`), `get_BALI_qty` (returns `qty, skus`), `get_weight`, `get_sku_barcode` all return arrays in **X/S → S/M → M/L → X/L** order. If a source sheet is sorted differently, fix it at the source — the code trusts this order and the filter uses positional indices.
 
@@ -245,10 +279,10 @@ Split into two cases:
 Edit the constants at the top of `main.py`:
 
 ```python
-STYLE  = "EMORY TIPPED L/S TOP COTTON".upper()
-COLOR  = "Ventana Blue/Twilight Sky".upper()
+STYLE  = "GALAXY TOP COTTON".upper()
+COLOR  = "CREAM/WHITE/KHAKI".upper()
 SEASON = "26 Spring"
-production_type = "fixed"   # one of: unfix, fixed, sample, sale_stock, o4
+production_type = "sample"   # one of: unfix, fixed, sample, sale_stock, o4
 ```
 
 Then run:
@@ -260,24 +294,25 @@ python main.py
 `main.py` will:
 
 1. Map `production_type` → `FP_DC` and `SALE` (FP / `SALE=False` for unfix/fixed, DC / `SALE=True` otherwise).
-2. Call `PUD.decide(STYLE, COLOR, FP_DC)`.
-3. If `status == DRAFT`: route to `CreatePP(STYLE, COLOR, SEASON, SALE)` (new) or `UpdatePP(STYLE, COLOR, SEASON, product_id, SALE)` (existing).
-4. On successful create (`link is not None`), append `[COLOR, STYLE, product_id, "DRAFT", FP_DC]` to the first empty `Style` row in the `PP SY LIST` tab via `sheet.values().update(...)`. The starting row is detected by reading the sheet, filtering rows where `Style` is empty after `fillna('').str.strip()`, and taking `df.index[0] + 2` (header offset). The write target is hardcoded to column `R`.
+2. Call `PUD.decide(STYLE, COLOR, FP_DC)` and unpack `create_new, product_id, status, description`.
+3. If `status.upper() == "DRAFT"`: route to `CreatePP(STYLE, COLOR, SEASON, SALE, description)` (new) or `UpdatePP(STYLE, COLOR, SEASON, product_id, SALE, description)` (existing).
+4. On successful create (`link is not None`), append `[STYLE, COLOR, product_id, "DRAFT", FP_DC]` to the first empty `Style` row in the `PP SY LIST` tab via `sheet.values().update(...)`. The starting row is detected by reading the sheet, filtering rows where `Style` is empty after `fillna('').str.strip()`, and writing to `'PP SY LIST'!A{first_empty_idx + 2}` (header offset). The write target column is **`A`**.
 5. The sheet write only fires if at least one product was actually created. Updates (the `create_new == False` path) do **not** append to `PP SY LIST` — that row is presumed already present from the original create.
-6. If `status != DRAFT`, print "not found or an active pp. skipping" and exit without writing.
+6. If `status != "DRAFT"`, prints "not found or an active pp. skipping" and exits without writing.
 
 ### Bulk, sheet-driven (`return_product.py`)
 
-Reads the Master Grid of Return sheet's daily worksheet (`"21 May, 2026"` style, generated from `date.today()`), filters out rows flagged `ZZ`, and iterates each Style/Color:
+Reads the Master Grid of Return sheet's daily worksheet (worksheet name = `date.today().strftime("%B %d, %Y")`, e.g. `"May 25, 2026"`), drops rows where any `ZZ`-named column equals `"ZZ"`, drops duplicates by `(Style, Color)`, and iterates each remaining row:
 
 - Reads `Added to full price` and `Added to sale` columns. The one marked `x` decides FP vs DC and `SALE` (FP → `SALE=False`, DC → `SALE=True`). Both `x` or neither → log and `continue` to the next row.
 - Calls `PUD.decide` to find the existing product page.
-- If `create_new == True`: prints "no product page found, create new one." and moves on (no creation from this entry point — creates are done via `main.py`).
-- If the product is `DRAFT`:
+- If `create_new == True`: instantiates `CreatePP` and calls `create_fixed()` (FP) or `create_sale_stock()` (DC). On success, writes the returned link to column `R` of the source row and appends to a `PP SY LIST` writeback batch.
+- If `create_new == False` and the product is `DRAFT`:
   - `FP_DC == "FP"` → `link = U.update_fixed()`
   - `FP_DC == "DC"` → `link = U.update_sale_stock()`
   - Then writes that `link` back to the Master Grid row's column `R` via `sheet.values().update(spreadsheetId=RETURN_ID, range="'<worksheet>'!R<sheet_row>", ...)`.
 - Active products are logged with "this is an active product, retracting..." and skipped.
+- After the loop, if any new product was created, appends `[STYLE, COLOR, product_id, "DRAFT", FP_DC]` rows to the `PP SY LIST` tab at column `A` (same writeback as `main.py`).
 
 ```bash
 python return_product.py
@@ -287,19 +322,29 @@ Row→sheet mapping: `iterrows()` yields the DataFrame index `idx`; the actual s
 
 The whole loop is wrapped in `try/except: traceback.print_exc()` so one bad row doesn't kill the run — but it also means errors are swallowed; check console output.
 
+> ⚠️ **`return_product.py` is currently broken** on the new `PUD.decide` / `CreatePP` / `UpdatePP` signatures:
+> - It unpacks **three** values from `PUD.decide` (`create_new, PRODUCT_ID, status = PUD.decide(...)`) but `decide` now returns four (it added `description`). First iteration → `ValueError: too many values to unpack`, swallowed by the outer try/except.
+> - It instantiates `CreatePP(STYLE, COLOR, SEASON, SALE)` and `UpdatePP(STYLE, COLOR, SEASON, PRODUCT_ID, SALE)` — both constructors now require `DESCRIPTION` as the last positional arg.
+>
+> Until those three call sites are updated (mirror what `main.py` does), `return_product.py` will not run.
+
 ---
 
 ## 9. Known caveats
 
-- **Hardcoded write column `R`.** Both `main.py` (PP SY LIST writeback) and `return_product.py` (Master Grid writeback) write starting at column `R`. Verify `R` is actually the first column of the target field range in each sheet — if columns shift, change the constant.
-- **`main.py` writes to PP SY LIST only on successful **create**.** The update path (`create_new == False`) doesn't append — there's no row to add because PP SY LIST is presumed to already contain that style. If you want updates logged elsewhere (e.g. a "last touched" column), add the writeback inside the update branch.
+- **Hardcoded write columns.** `main.py` and `return_product.py` write `PP SY LIST` rows starting at column `A`. `return_product.py` writes the Shopify link back to column `R` of the source Master Grid row. If columns shift in either sheet, change the literal.
+- **`main.py` writes to PP SY LIST only on successful create.** The update path (`create_new == False`) doesn't append — there's no row to add because PP SY LIST is presumed to already contain that style. `return_product.py` does the same: only `create_new == True` runs append to PP SY LIST.
 - **`CreatePP.create_*` returns `(None, None)` on any failure** (no stock, non-201, exception). Callers must check `if link is not None:` before using the values. `UpdatePP.update_*` returns `None` on no-stock skip but still returns a built `link` after an exception — inconsistent with create, so don't assume a non-None update return means success without also looking at console.
 - **Error handling swallows failures.** Both `CreatePP.create_*` and `UpdatePP.update_*` wrap their full body in `try/except Exception: traceback.print_exc()`. A failure will print a stack trace but the loop in `return_product.py` (and `main.py` for a single run) keeps going. Check console output — silent success is not the same as actual success.
 - **Update-side relies on stable SKUs.** The PUT reconciliation in [update_pp.py](update_pp.py) matches existing variants by SKU. If a SKU changes for a size+color that already exists, Shopify will see "delete old + create new with same option combo" and reject with "Option values are not unique" (422). Keep SKUs stable, or extend the matching to use `option1+option2`.
 - **`fixed` / `sale_stock` uses NE-stock SKUs with Bali fallback, not the UPC list.** NE is the source of truth for what's shippable; Bali fills in sizes (or whole products) that aren't in NE. If a size has `qty > 0` but **both** `skus_ne[i]` and `skus_ba[i]` are blank, the variant gets created with an empty SKU and (via `fetch_barcode`) an empty barcode. `keep` doesn't filter on SKU presence — only on qty. Worth a glance after a run on a new product.
-- **API version is mixed.** `update_pp.py` uses `2024-01` for product calls and `2026-01` for inventory/metafields. `create_pp.py` uses `2026-01`. Functional but inconsistent.
-- **`set_inventory_metafield` has a silent catch-all.** Any `production_type` not in `('fixed', 'sale_stock', 'sample')` falls into the `Bali_To_Produce_ID` + 5000 branch. `unfix` and `o4` rely on this. A typoed production_type would also silently route there.
-- **`qty_sample` is a 1-element list.** `P.get_sample_qty()` returns a list; callers must use `qty_sample[0]` both for the `tags_generator` call and when passing to `set_inventory_metafield` (otherwise the list itself ends up as the `available` value posted to Shopify).
+- **`set_inventory_metafield` diverges between create and update.** Create only posts to the relevant location(s) for the type. Update posts to **all four** locations per variant, zeroing the irrelevant ones (so changing a product from `unfix` to `fixed` via update will wipe its `Bali_To_Produce_ID` qty to 0). Intentional, but easy to miss.
+- **API version is mixed.** `update_pp.py` uses `2024-01` for product GET/PUT and `2026-01` for inventory/metafields. `create_pp.py` uses `2026-01` throughout. Functional but inconsistent.
+- **`set_inventory_metafield` has a silent catch-all on the create side.** Any `production_type` not in `('fixed', 'sale_stock', 'sample')` falls into the `Bali_To_Produce_ID` + 5000 branch. `unfix` and `o4` rely on this. A typoed production_type would also silently route there.
+- **`qty_sample` shape mismatch.** `ProductInfo.get_sample_qty()` currently returns a **scalar** (the `S/M` cell value, or `0` when no row matches). But both `CreatePP.create_sample` and `UpdatePP.update_sample` still do `qty_sample[0]` — that slices the first character off a string qty (e.g. `"12"[0] == "1"`) and raises `TypeError` when the no-match `0` int comes back. Until the callers are fixed (drop the `[0]`), `sample` runs will either post wrong qty or crash through into the outer except.
+- **Update PUT touches `body_html` and `images`** (not just variants/options/tags). So an update will refresh the description (from `PP SY LIST.Description`) and re-fetch images from `Links storage`. `status` and `title` are NOT in the PUT body — a DRAFT stays DRAFT, and the title is unchanged.
+- **Variant images are attached after every create and update** via `_attach_variant_image` (an extra PUT setting each variant's `image_id` to the first product image). This is an ID reference, not a `src` URL, so it does NOT create new entries in Content > Files. Disable by removing `self._attach_variant_image(...)` from each `create_*` / `update_*` method. Note: because images are re-sent in the update payload (see previous point), Shopify still re-downloads them on every update — the variant-image step doesn't fix that, only the variant→image association.
 - **Shopify variant order in the response is trusted** to match creation order (and update order) for the per-variant inventory loop. Normally true; if you ever see inventory landing on the wrong size, that's the first thing to check.
 - **`get_BALI_qty` always returns 0 for X/L** (intentional — Bali doesn't carry X/L). A `fixed` product with NE-only X/L stock will correctly post 0 to Bali for that variant.
 - **Header-duplication safety in `return_product.py`**: the loop uses a `_first()` helper because the Master Grid of Return sheet can have duplicate column headers — `_first(x)` returns `x.iloc[0]` if `x` is a Series, else `x`. Don't remove unless you've confirmed headers are unique.
+- **`return_product.py` signature drift (see §8).** Currently broken against the new `decide` / `CreatePP` / `UpdatePP` signatures.

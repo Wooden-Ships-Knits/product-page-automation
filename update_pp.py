@@ -32,7 +32,22 @@ class UpdatePP:
             return int(str(v).strip() or 0)
         except (TypeError, ValueError):
             return 0
-            
+
+    def _attach_variant_image(self, response):
+        data = response.json().get("product", {})
+        images = data.get("images", [])
+        variants = data.get("variants", [])
+        if not images or not variants:
+            return
+        image_id = images[0]["id"]
+        payload = {
+            "product": {
+                "id": self.PRODUCT_ID,
+                "variants": [{"id": v["id"], "image_id": image_id} for v in variants],
+            }
+        }
+        requests.put(self.url, headers=headers, json=payload)
+
     def update_unfix(self):
         try:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=False, sas=False)
@@ -40,6 +55,7 @@ class UpdatePP:
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
             title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
+            page_title, meta_desc, url = P.get_SEL()    
             variants, options,tags, template_suffix = self.product_post(self.COLOR, P)
             for v in variants:
                 if v["sku"] in sku_to_id:
@@ -48,15 +64,32 @@ class UpdatePP:
             payload = {
                 "product": {
                     "id": self.PRODUCT_ID,
+                    "handle":url,
+                    "metafields_global_title_tag": page_title.replace("/"," "),
+                    "metafields_global_description_tag":meta_desc,
                     "body_html": sale_desc + f"<p>{self.description}</p>" + thread_comp,
-                    "images": P.get_image(),                    
+                    "images": P.get_image(),
                     "variants": variants,
                     "options": options,
-                    "tags": tags,
-                    "template_suffix": template_suffix,
+                    "tags":tags,
+                    "template_suffix":template_suffix,
+                    "metafields": [
+                    {
+                        "namespace": "avalara",
+                        "key": "taxcode",
+                        "type": "single_line_text_field",
+                        "value": "PC040100"
+                    },
+                        {
+                        "namespace": "custom",
+                        "key": "size_chart_metafield",  
+                        "value": P.get_metachart()
+                    }
+                ],
                 }
             }
             response = requests.put(self.url, json=payload, headers=headers)
+            self._attach_variant_image(response)
             self.set_inventory_metafield(response, 'unfix')
         except Exception as e:
             traceback.print_exc()
@@ -85,7 +118,7 @@ class UpdatePP:
             title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
-
+            page_title, meta_desc, url = P.get_SEL()
             variants, options,tags, template_suffix = self.product_post(self.COLOR, P, keep=keep, qty=total_qty, skus=skus_chosen, barcodes=barcodes_chosen)
             for v in variants:
                 if v["sku"] in sku_to_id:
@@ -94,15 +127,32 @@ class UpdatePP:
             payload = {
                 "product": {
                     "id": self.PRODUCT_ID,
+                    "handle":url,
+                    "metafields_global_title_tag": page_title.replace("/"," "),
+                    "metafields_global_description_tag":meta_desc,
                     "body_html": sale_desc + f"<p>{self.description}</p>" + thread_comp,
-                    "images": P.get_image(),                   
+                    "images": P.get_image(),
                     "variants": variants,
                     "options": options,
-                    "tags": tags,
-                    "template_suffix": template_suffix,
+                    "tags":tags,
+                    "template_suffix":template_suffix,
+                    "metafields": [
+                    {
+                        "namespace": "avalara",
+                        "key": "taxcode",
+                        "type": "single_line_text_field",
+                        "value": "PC040100"
+                    },
+                        {
+                        "namespace": "custom",
+                        "key": "size_chart_metafield",  
+                        "value": P.get_metachart()
+                    }
+                ],
                 }
             }
             response = requests.put(self.url, json=payload, headers=headers)
+            self._attach_variant_image(response)
             self.set_inventory_metafield(response, 'fixed', qty_ne=qty_ne, qty_ba=qty_ba)
 
         except Exception:
@@ -118,6 +168,7 @@ class UpdatePP:
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
             title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
+            page_title, meta_desc, url = P.get_SEL()
             variants, options,tags, template_suffix = self.product_post(self.COLOR, P,keep=None,qty=qty_sample[0])
             for v in variants:
                 if v["sku"] in sku_to_id:
@@ -126,15 +177,32 @@ class UpdatePP:
             payload = {
                 "product": {
                     "id": self.PRODUCT_ID,
+                    "handle":url,
+                    "metafields_global_title_tag": page_title.replace("/"," "),
+                    "metafields_global_description_tag":meta_desc,
                     "body_html": sale_desc + f"<p>{self.description}</p>" + thread_comp,
-                    "images": P.get_image(),                    
+                    "images": P.get_image(),
                     "variants": variants,
                     "options": options,
-                    "tags" : tags,
-                    "template_suffix": template_suffix
+                    "tags":tags,
+                    "template_suffix":template_suffix,
+                    "metafields": [
+                    {
+                        "namespace": "avalara",
+                        "key": "taxcode",
+                        "type": "single_line_text_field",
+                        "value": "PC040100"
+                    },
+                        {
+                        "namespace": "custom",
+                        "key": "size_chart_metafield",  
+                        "value": P.get_metachart()
+                    }
+                ],
                 }
             }
             response = requests.put(self.url, json=payload, headers=headers)
+            self._attach_variant_image(response)
             self.set_inventory_metafield(response, 'sample', qty_sample=qty_sample[0])
         except Exception as e:
             traceback.print_exc()
@@ -157,6 +225,7 @@ class UpdatePP:
             qty_ne = [qty_ne[i] for i in keep]
             qty_ba = [qty_ba[i] for i in keep]
             title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
+            page_title, meta_desc, url = P.get_SEL()
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
             total_qty = sum(
@@ -171,15 +240,32 @@ class UpdatePP:
             payload = {
                 "product": {
                     "id": self.PRODUCT_ID,
+                    "handle":url,
+                    "metafields_global_title_tag": page_title.replace("/"," "),
+                    "metafields_global_description_tag":meta_desc,
                     "body_html": sale_desc + f"<p>{self.description}</p>" + thread_comp,
                     "images": P.get_image(),
                     "variants": variants,
                     "options": options,
                     "tags":tags,
                     "template_suffix":template_suffix,
+                    "metafields": [
+                    {
+                        "namespace": "avalara",
+                        "key": "taxcode",
+                        "type": "single_line_text_field",
+                        "value": "PC040100"
+                    },
+                        {
+                        "namespace": "custom",
+                        "key": "size_chart_metafield",  
+                        "value": P.get_metachart()
+                    }
+                ],
                 }
             }
             response = requests.put(self.url, json=payload, headers=headers)
+            self._attach_variant_image(response)
             self.set_inventory_metafield(response, 'sale_stock', qty_ne=qty_ne, qty_ba=qty_ba)
 
         except Exception:
@@ -195,6 +281,7 @@ class UpdatePP:
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
             title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             variants, options,tags,template_suffix = self.product_post(self.COLOR, P)
+            page_title, meta_desc, url = P.get_SEL()
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -202,15 +289,32 @@ class UpdatePP:
             payload = {
                 "product": {
                     "id": self.PRODUCT_ID,
+                    "handle":url,
+                    "metafields_global_title_tag": page_title.replace("/"," "),
+                    "metafields_global_description_tag":meta_desc,
                     "body_html": sale_desc + f"<p>{self.description}</p>" + thread_comp,
                     "images": P.get_image(),
                     "variants": variants,
                     "options": options,
                     "tags":tags,
-                    "template_suffix":template_suffix
+                    "template_suffix":template_suffix,
+                    "metafields": [
+                    {
+                        "namespace": "avalara",
+                        "key": "taxcode",
+                        "type": "single_line_text_field",
+                        "value": "PC040100"
+                    },
+                        {
+                        "namespace": "custom",
+                        "key": "size_chart_metafield",  
+                        "value": P.get_metachart()
+                    }
+                ],
                 }
             }
             response = requests.put(self.url, json=payload, headers=headers)
+            self._attach_variant_image(response)
             self.set_inventory_metafield(response, 'o4')
         except Exception as e:
             traceback.print_exc()
@@ -218,14 +322,21 @@ class UpdatePP:
         return link
     
     def product_post(self,COLOR,P,keep=None,qty=None,skus=None,barcodes=None):
-        sizes,weights = P.get_weight()
-        default_barcodes, default_skus = P.get_sku_barcode()
+        sizes = list(P.get_sizes())
+        sizes_im, weights_im = P.get_weight()
+        weight_by_size = dict(zip(sizes_im, weights_im))
+        weights = [weight_by_size.get(s, 0) for s in sizes]
+
+        need_defaults = skus is None or barcodes is None
+        default_barcodes, default_skus = P.get_sku_barcode() if need_defaults else ([], [])
 
         if keep is not None:
-            sizes    = [sizes[i]    for i in keep]
-            weights  = [weights[i]  for i in keep]
-            default_skus = [default_skus[i] for i in keep]
-            default_barcodes = [default_barcodes[i] for i in keep]
+            sizes   = [sizes[i]   for i in keep]
+            weights = [weights[i] for i in keep]
+            if default_skus:
+                default_skus = [default_skus[i] for i in keep]
+            if default_barcodes:
+                default_barcodes = [default_barcodes[i] for i in keep]
 
         skus = skus if skus is not None else default_skus
         barcodes = barcodes if barcodes is not None else default_barcodes
