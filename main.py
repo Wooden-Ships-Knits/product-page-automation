@@ -11,8 +11,8 @@ SEASON = "26 Spring"
 
 data = [
     {
-    "Styles": "LOVE SCRIPT RIBBED CREW COTTON".upper(), 
-    "Colors": "REAL RED/BREAKER WHITE".upper(), 
+    "Styles": "RENEE CARDIGAN COTTON".upper(), 
+    "Colors": "Blush Champagne".upper(), 
     "Production": "fixed"
         },
 

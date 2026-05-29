@@ -45,11 +45,11 @@ class ProductInfo:
             thread_comp = "<p>Composition: 76% acrylic, 12% Mohair and 12% Wool</p>"
 
         ############################## Sale desc  ####################################
-        if self.sample == True:
+        if self.sale == True and self.sample == True :
             sale_desc = """
             <p><meta charset="utf-8"><span data-mce-fragment="1">Sale items are FINAL SALE: No Returns, Refunds, or Exchanges. </span><span data-mce-fragment="1">&nbsp;</span><br data-mce-fragment="1"><span data-mce-fragment="1">Why is this on Sale? These pieces are knit as samples for our wholesale business. They have been handled during sales appointments, but they are carefully inspected before shipping.</span></p>
             """
-        elif self.sample == True and self.sas == True:  
+        elif self.sale == True and self.sample == False:  
             sale_desc="""
             <p><meta charset="utf-8"><span data-mce-fragment="1">Sale items are FINAL SALE: No Returns, Refunds or Exchanges. </span><span data-mce-fragment="1"> </span><br data-mce-fragment="1"><span data-mce-fragment="1">Why is this on Sale? Sometimes a shopper changes their mind leaving us with perfectly fabulous sweaters, or we have extra yarn with which we knit new sweaters.</span></p>
             """
@@ -58,6 +58,7 @@ class ProductInfo:
 
         if self.sale == True:
             title_page = sale_title_page
+            
         return title_page, sale_title_page, sale_desc, thread_comp
     
     def _master_data(self):
