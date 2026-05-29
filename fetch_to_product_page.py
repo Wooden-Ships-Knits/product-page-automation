@@ -154,7 +154,13 @@ class ProductInfo:
             df= df[df["Lineitem sku"].str.contains(f"P{self.cat_code}", case=False, na=False)]
         else:
            df = df[df["Lineitem sku"].str.contains(self.cat_code, case=False, na=False)]
-        return df["UPC Barcode"].tolist(), df["Lineitem sku"].tolist()
+
+        if self.sample == True:
+            barcodes, skus = [0,df["UPC Barcode"].iloc[0],0,0], [0,df["Lineitem sku"].iloc[0],0,0]
+        else: 
+            barcodes, skus = df["UPC Barcode"].tolist(), df["Lineitem sku"].tolist()
+
+        return barcodes, skus
     
     def get_generic_color(self):
         generic_colors = []
@@ -375,7 +381,7 @@ class ProductInfo:
 </table>
         """  
         # print("success extract all available information")
-        return metafield
+        return metafield, size_order
     
     def get_price(self):
         df = self._master_data()

@@ -12,3 +12,4 @@ note.ipynb
 .env
 *.xlsx
 *.csv
+list_locations.py

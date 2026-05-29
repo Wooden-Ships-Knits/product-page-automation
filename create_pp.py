@@ -118,7 +118,12 @@ class CreatePP:
             P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=True, sale=True, sas=False)
             qty_sample = P.get_sample_qty()
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
-            product_data = self.product_post(P, keep=None, qty=qty_sample[0])
+            _, sizes = P.get_metachart()
+            if 'S/M' not in sizes:
+                print(f"S/M not found in sizes for {self.STYLE} {self.COLOR} — skipping sample.")
+                return None, None
+            keep = [sizes.index('S/M')]
+            product_data = self.product_post(P, keep=keep, qty=qty_sample)
 
             response = requests.post(product_url, headers=headers, json=product_data)
             if response.status_code != 201:
@@ -130,7 +135,7 @@ class CreatePP:
 
             set_sy.publish_to_all_channels(product_id)
 
-            self.set_inventory_metafield(response, 'sample', qty_sample=qty_sample[0])
+            self.set_inventory_metafield(response, 'sample', qty_sample=qty_sample)
         except Exception:
             traceback.print_exc()
             return None, None
@@ -212,7 +217,8 @@ class CreatePP:
         print(f"meta_desc: {meta_desc}")
         print(f"url: {url}")
 
-        sizes = list(P.get_sizes())
+        # sizes = list(P.get_sizes())
+        metachart,sizes = P.get_metachart()
         sizes_im, weights_im = P.get_weight()
         weight_by_size = dict(zip(sizes_im, weights_im))
         weights = [weight_by_size.get(s, 0) for s in sizes]
@@ -235,7 +241,7 @@ class CreatePP:
         print(f"barcodes: {barcodes}")
         print(f"skus: {skus}")
 
-        metachart = P.get_metachart()
+
         print(f"metachart: {metachart}")
 
         tags = P.get_tags()

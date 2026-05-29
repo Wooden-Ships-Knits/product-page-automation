@@ -1,4 +1,5 @@
-import Setup.fetch_product_id_new as fetch
+import Setup.fetch_product_id_new as fetch_id
+import Setup.fetch_images_name_link as fetch_image
 import fetch_to_product_page as ftp
 import pandas as pd
 import create_pp
@@ -10,10 +11,11 @@ SEASON = "26 Spring"
 
 data = [
     {
-    "Styles": "BEACH V COTTON".upper(), 
-    "Colors": "BREAKER WHITE/AZURE SLATE".upper(), 
+    "Styles": "LOVE SCRIPT RIBBED CREW COTTON".upper(), 
+    "Colors": "REAL RED/BREAKER WHITE".upper(), 
     "Production": "fixed"
         },
+
 ]
 
 
@@ -107,4 +109,6 @@ def production(data):
 
 
 if __name__ == "__main__":
+    # fetch_id.fetch()
+    # fetch_image.list_shop_files()
     production(data)

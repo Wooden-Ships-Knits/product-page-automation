@@ -57,6 +57,8 @@ class UpdatePP:
             title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             page_title, meta_desc, url = P.get_SEL()    
             variants, options,tags, template_suffix = self.product_post(self.COLOR, P)
+            metachart , _ = P.get_metachart()
+
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -83,7 +85,7 @@ class UpdatePP:
                         {
                         "namespace": "custom",
                         "key": "size_chart_metafield",  
-                        "value": P.get_metachart()
+                        "value": metachart
                     }
                 ],
                 }
@@ -115,6 +117,7 @@ class UpdatePP:
                 self._to_int(a) + self._to_int(b)
                 for a, b in zip(qty_ne, qty_ba)
             )
+            _, metachart = P.get_metachart()
             title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
@@ -146,7 +149,7 @@ class UpdatePP:
                         {
                         "namespace": "custom",
                         "key": "size_chart_metafield",  
-                        "value": P.get_metachart()
+                        "value": metachart
                     }
                 ],
                 }
@@ -169,7 +172,13 @@ class UpdatePP:
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
             title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             page_title, meta_desc, url = P.get_SEL()
-            variants, options,tags, template_suffix = self.product_post(self.COLOR, P,keep=None,qty=qty_sample[0])
+            _, sizes = P.get_metachart()
+            if 'S/M' not in sizes:
+                print(f"S/M not found in sizes for {self.STYLE} {self.COLOR} — skipping sample update.")
+                return f"https://admin.shopify.com/store/wooden-ships/products/{self.PRODUCT_ID}"
+            keep = [sizes.index('S/M')]
+            variants, options,tags, template_suffix = self.product_post(self.COLOR, P,keep=keep,qty=qty_sample)
+            metachart , _ = P.get_metachart()
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -196,14 +205,16 @@ class UpdatePP:
                         {
                         "namespace": "custom",
                         "key": "size_chart_metafield",  
-                        "value": P.get_metachart()
+                        "value": metachart
                     }
                 ],
                 }
             }
             response = requests.put(self.url, json=payload, headers=headers)
+            if response.status_code not in (200, 201):
+                print("Sample update failed:", response.text)
             self._attach_variant_image(response)
-            self.set_inventory_metafield(response, 'sample', qty_sample=qty_sample[0])
+            self.set_inventory_metafield(response, 'sample', qty_sample=qty_sample)
         except Exception as e:
             traceback.print_exc()
         link = f"https://admin.shopify.com/store/wooden-ships/products/{self.PRODUCT_ID}"
@@ -232,6 +243,7 @@ class UpdatePP:
                 self._to_int(a) + self._to_int(b)
                 for a, b in zip(qty_ne, qty_ba)
             )
+            metachart , _ = P.get_metachart()
             variants, options,tags,template_suffix = self.product_post(self.COLOR, P, keep=keep, qty=total_qty, skus=skus_chosen, barcodes=barcodes_chosen)
             for v in variants:
                 if v["sku"] in sku_to_id:
@@ -259,7 +271,7 @@ class UpdatePP:
                         {
                         "namespace": "custom",
                         "key": "size_chart_metafield",  
-                        "value": P.get_metachart()
+                        "value": metachart
                     }
                 ],
                 }
@@ -282,6 +294,8 @@ class UpdatePP:
             title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             variants, options,tags,template_suffix = self.product_post(self.COLOR, P)
             page_title, meta_desc, url = P.get_SEL()
+            metachart , _ = P.get_metachart()
+
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -308,7 +322,7 @@ class UpdatePP:
                         {
                         "namespace": "custom",
                         "key": "size_chart_metafield",  
-                        "value": P.get_metachart()
+                        "value": metachart,
                     }
                 ],
                 }
@@ -322,7 +336,8 @@ class UpdatePP:
         return link
     
     def product_post(self,COLOR,P,keep=None,qty=None,skus=None,barcodes=None):
-        sizes = list(P.get_sizes())
+        # sizes = list(P.get_sizes())
+        _, sizes = P.get_metachart()
         sizes_im, weights_im = P.get_weight()
         weight_by_size = dict(zip(sizes_im, weights_im))
         weights = [weight_by_size.get(s, 0) for s in sizes]
@@ -385,7 +400,11 @@ class UpdatePP:
             
     def set_inventory_metafield(self,response, production_type, qty_ne=None, qty_ba=None, qty_sample = None):
         data = response.json()
-        variants = data["product"]["variants"]
+        if "product" in data and "variants" in data["product"]:
+            variants = data["product"]["variants"]
+        else:
+            print("PUT response missing 'product' — falling back to GET for inventory update.")
+            variants = requests.get(self.url, headers=headers).json()["product"]["variants"]
 
         def _to_int(v):
             try:
