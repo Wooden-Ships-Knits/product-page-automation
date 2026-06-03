@@ -18,9 +18,10 @@ SIZE_RANGE = {
 }
 
 class UpdatePP:
-    def __init__(self,STYLE,COLOR,SEASON,PRODUCT_ID,SALE, DESCRIPTION):
+    def __init__(self,STYLE,COLORS,SEASON,PRODUCT_ID,SALE, DESCRIPTION):
         self.STYLE = STYLE
-        self.COLOR = COLOR
+        self.COLOR = COLORS[0]
+        self.COLORS = COLORS
         self.SEASON = SEASON
         self.PRODUCT_ID = PRODUCT_ID
         self.sale = SALE
@@ -50,13 +51,13 @@ class UpdatePP:
 
     def update_unfix(self):
         try:
-            P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=False, sas=False)
+            P= ProductInfo(self.STYLE,self.COLORS,self.SEASON,sample=False, sale=False, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
             title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             page_title, meta_desc, url = P.get_SEL()    
-            variants, options,tags, template_suffix = self.product_post(self.COLOR, P)
+            variants, options,tags, template_suffix = self.product_post(self.COLORS, P)
             metachart , _ = P.get_metachart()
 
             for v in variants:
@@ -100,7 +101,7 @@ class UpdatePP:
     
     def update_fixed(self):
         try:
-            P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=False, sas=False)
+            P= ProductInfo(self.STYLE,self.COLORS,self.SEASON,sample=False, sale=False, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             qty_ne, skus_ne = P.get_NE_qty()
             qty_ba, skus_ba = P.get_BALI_qty()
@@ -117,12 +118,12 @@ class UpdatePP:
                 self._to_int(a) + self._to_int(b)
                 for a, b in zip(qty_ne, qty_ba)
             )
-            _, metachart = P.get_metachart()
+            metachart, _ = P.get_metachart()
             title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
             page_title, meta_desc, url = P.get_SEL()
-            variants, options,tags, template_suffix = self.product_post(self.COLOR, P, keep=keep, qty=total_qty, skus=skus_chosen, barcodes=barcodes_chosen)
+            variants, options,tags, template_suffix = self.product_post(self.COLORS, P, keep=keep, qty=total_qty, skus=skus_chosen, barcodes=barcodes_chosen)
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -165,7 +166,7 @@ class UpdatePP:
     
     def update_sample(self):
         try:
-            P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=True, sale=True, sas=False)
+            P= ProductInfo(self.STYLE,self.COLORS,self.SEASON,sample=True, sale=True, sas=False)
             qty_sample = P.get_sample_qty()
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
@@ -177,7 +178,7 @@ class UpdatePP:
                 print(f"S/M not found in sizes for {self.STYLE} {self.COLOR} — skipping sample update.")
                 return f"https://admin.shopify.com/store/wooden-ships/products/{self.PRODUCT_ID}"
             keep = [sizes.index('S/M')]
-            variants, options,tags, template_suffix = self.product_post(self.COLOR, P,keep=keep,qty=qty_sample)
+            variants, options,tags, template_suffix = self.product_post(self.COLORS, P,keep=keep,qty=qty_sample)
             metachart , _ = P.get_metachart()
             for v in variants:
                 if v["sku"] in sku_to_id:
@@ -222,7 +223,7 @@ class UpdatePP:
 
     def update_sale_stock(self):
         try:
-            P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=True, sas=False)
+            P= ProductInfo(self.STYLE,self.COLORS,self.SEASON,sample=False, sale=True, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             qty_ne, skus_ne = P.get_NE_qty()
             qty_ba, skus_ba = P.get_BALI_qty()
@@ -244,7 +245,7 @@ class UpdatePP:
                 for a, b in zip(qty_ne, qty_ba)
             )
             metachart , _ = P.get_metachart()
-            variants, options,tags,template_suffix = self.product_post(self.COLOR, P, keep=keep, qty=total_qty, skus=skus_chosen, barcodes=barcodes_chosen)
+            variants, options,tags,template_suffix = self.product_post(self.COLORS, P, keep=keep, qty=total_qty, skus=skus_chosen, barcodes=barcodes_chosen)
             for v in variants:
                 if v["sku"] in sku_to_id:
                     v["id"] = sku_to_id[v["sku"]]
@@ -287,12 +288,12 @@ class UpdatePP:
 
     def update_o4(self):
         try:
-            P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=True, sas=True)
+            P= ProductInfo(self.STYLE,self.COLORS,self.SEASON,sample=False, sale=True, sas=True)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             sku_to_id = {v["sku"]: v["id"] for v in existing if v.get("sku")}
             title_page, sale_title_page, sale_desc, thread_comp = P.title_and_desc()
-            variants, options,tags,template_suffix = self.product_post(self.COLOR, P)
+            variants, options,tags,template_suffix = self.product_post(self.COLORS, P)
             page_title, meta_desc, url = P.get_SEL()
             metachart , _ = P.get_metachart()
 
@@ -335,7 +336,7 @@ class UpdatePP:
         link = f"https://admin.shopify.com/store/wooden-ships/products/{self.PRODUCT_ID}"
         return link
     
-    def product_post(self,COLOR,P,keep=None,qty=None,skus=None,barcodes=None):
+    def product_post(self,COLORS,P,keep=None,qty=None,skus=None,barcodes=None):
         # sizes = list(P.get_sizes())
         _, sizes = P.get_metachart()
         sizes_im, weights_im = P.get_weight()
@@ -372,19 +373,20 @@ class UpdatePP:
                 template_suffix ="sale-item"
         variants = []
         print("processing variant")
-
-        for i, size in enumerate(sizes):
-            variants.append({
-            "option1": f"{size} {SIZE_RANGE[size]}",
-            "option2": COLOR.title(),
-            "sku": skus[i],
-            "price": price,
-            "compare_at_price": full_price,
-            "inventory_management": "shopify",
-            "barcode": barcodes[i],
-            "weight": weights[i],
-            "weight_unit": "g",
-        })
+        for j, c in enumerate(COLORS):
+            j = j* len(sizes)
+            for i, size in enumerate(sizes):
+                variants.append({
+                "option1": f"{size} {SIZE_RANGE[size]}",
+                "option2": c.title(),
+                "sku": skus[i+j],
+                "price": price,
+                "compare_at_price": full_price,
+                "inventory_management": "shopify",
+                "barcode": barcodes[i+j],
+                "weight": weights[i],
+                "weight_unit": "g",
+            })
         
         options = [
         {
@@ -393,7 +395,7 @@ class UpdatePP:
         },
         {
             "name": "Color",
-            "values": [COLOR.title()]
+            "values": [c.title() for c in COLORS]
         }
         ]
         return variants, options, tags, template_suffix
@@ -403,8 +405,9 @@ class UpdatePP:
         if "product" in data and "variants" in data["product"]:
             variants = data["product"]["variants"]
         else:
-            print("PUT response missing 'product' — falling back to GET for inventory update.")
-            variants = requests.get(self.url, headers=headers).json()["product"]["variants"]
+            print(f"PUT response missing 'product' (status={response.status_code}). Body: {response.text[:1000]}")
+            print("Skipping inventory update because PUT failed — variants from GET may not match qty arrays.")
+            return
 
         def _to_int(v):
             try:

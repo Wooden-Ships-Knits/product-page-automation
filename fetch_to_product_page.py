@@ -16,9 +16,10 @@ This is for fetching all the information needed for a style
 """
 
 class ProductInfo:
-    def __init__(self,style, color,season,sample , sale, sas):
+    def __init__(self,style, colors,season,sample , sale, sas):
         self.style = style
-        self.color = color
+        self.color = colors[0]
+        self.colors = colors
         self.season = season.title()
         self.sample = sample
         self.sale = sale
@@ -58,7 +59,7 @@ class ProductInfo:
 
         if self.sale == True:
             title_page = sale_title_page
-            
+
         return title_page, sale_title_page, sale_desc, thread_comp
     
     def _master_data(self):
@@ -101,10 +102,55 @@ class ProductInfo:
 
         df_md = pd.DataFrame(rows, columns=combined_headers)
         
-        df_md = df_md[df_md["FROM IM | DESCRIPTION"].str.contains(self.style, case=False, na=False)&
-                df_md["FROM IM | COLOR"].str.contains(self.color, case=False, na=False)]
+        df_md = df_md[(df_md["FROM IM | DESCRIPTION"].str.casefold() == self.style.casefold()) &
+                (df_md["FROM IM | COLOR"].str.casefold() == self.color.casefold())]
+
+        return df_md
+
+    def _master_data_wo_color(self):
+        values_md = setup._get_sheet_values(
+            sheet_id=os.getenv("MASTER_DATA_ID"),
+            worksheet_name=self.season_code,
+            use_all_values=True,
+        )
+
+        def forward_fill(row):
+            filled = []
+            last = ""
+            for cell in row:
+                cell = cell.strip()
+                if cell:
+                    last = cell
+                filled.append(last)
+
+            return filled
+
+        header_level_1 = forward_fill(values_md[9])
+        header_level_2 = forward_fill(values_md[10])
+        header_level_3 = forward_fill(values_md[11])
+        rows = values_md[12:]
+        combined_headers = []
+        
+        for h1, h2, h3 in zip(header_level_1, header_level_2, header_level_3):
+
+            parts = []
+
+            if h1.strip():
+                parts.append(h1.strip())
+            if h2.strip():
+                parts.append(h2.strip())
+            if h3.strip():
+                parts.append(h3.strip())
+
+            combined_name = " | ".join(parts)
+            combined_headers.append(combined_name)
+
+        df_md = pd.DataFrame(rows, columns=combined_headers)
+        
+        df_md = df_md[df_md["FROM IM | DESCRIPTION"].str.casefold() == self.style.casefold()]
         
         return df_md
+
 
     def _IM_data(self):
         return setup._read_excel_cached(self.IM_path, header=IM_header)
@@ -119,19 +165,20 @@ class ProductInfo:
 
     def get_weight(self):
         df_im = self._IM_data()
-        df_im = df_im[df_im["DESCRIPTION"].str.contains(self.style, case=False, na=False)&
-            df_im["WS TAG COLOR"].str.contains(self.color, case=False, na=False)]
-        
+        df_im = df_im[(df_im["DESCRIPTION"].str.contains(self.style, case=False,na=False)) &
+            (df_im["WS TAG COLOR"].str.contains(self.color, case=False,na=False))]
+
         if self.sample ==True:
             df_im = df_im[df_im["DESCRIPTION"].str.contains('S/M', case=False, na=False)]
 
         weights = (df_im["PRE COMPONENT WT (PC WT)"].astype(float) * 1000).round().astype(int).tolist()
-        sizes = df_im["DESCRIPTION"].str.split(" - ").str[-1].tolist()
+        sizes = df_im["DESCRIPTION"].str.split("-").str[-1].tolist()
         return sizes, weights
 
     def get_sizes(self):
         return ('X/S','S/M','M/L','X/L')
         ## this was added in newer vesion
+        # we dont need this anymore though just let it be.
 
     def get_sku_barcode(self):
         if self.sample ==True:
@@ -146,21 +193,36 @@ class ProductInfo:
         )
 
         df = pd.DataFrame(values[5:], columns=values[4]) ### need to inform PPIC we should change the header row
-        
-        df= df[
-            df["Style"].str.contains(self.style, case=False, na=False) &
-            df["Color"].str.contains(self.color, case=False, na=False)## need an adjustment for this when we 
-        ]
-        if self.sas ==True:
-            df= df[df["Lineitem sku"].str.contains(f"P{self.cat_code}", case=False, na=False)]
-        else:
-           df = df[df["Lineitem sku"].str.contains(self.cat_code, case=False, na=False)]
+        barcodes, skus = [], []
+        for c in self.colors:
+            dfp= df[
+                (df["Style"].str.casefold() == self.style.casefold()) &
+                (df["Color"].str.contains(c, case=False, na=False))## need an adjustment for this when we
+            ]
+            if self.sas ==True:
+                dfp= dfp[dfp["Lineitem sku"].str.contains(f"P{self.cat_code}", case=False, na=False)]
+            else:
+                dfp = dfp[dfp["Lineitem sku"].str.contains(self.cat_code, case=False, na=False)]
 
-        if self.sample == True:
-            barcodes, skus = [0,df["UPC Barcode"].iloc[0],0,0], [0,df["Lineitem sku"].iloc[0],0,0]
-        else: 
-            barcodes, skus = df["UPC Barcode"].tolist(), df["Lineitem sku"].tolist()
-
+            if self.sample == True:
+                if dfp.empty:
+                    print(f"No SAMPLE UPC row for style={self.style}, color={c}, cat_code={self.cat_code} — using blank SKU/barcode.")
+                    barcode_val, sku_val = "", ""
+                else:
+                    barcode_val, sku_val = dfp["UPC Barcode"].iloc[0], dfp["Lineitem sku"].iloc[0]
+                barcodes, skus = [0, barcode_val, 0, 0], [0, sku_val, 0, 0]
+            else:
+                if dfp.empty:
+                    print(f"No PRODUCTION UPC row for style={self.style}, color={c}, cat_code={self.cat_code} — extending with blank SKU/barcode list.")
+                    barcode, sku = [""] * 4, [""] * 4
+                else:
+                    barcode, sku = dfp["UPC Barcode"].tolist(), dfp["Lineitem sku"].tolist()
+                    pad = 4 - len(sku)
+                    if pad > 0:
+                        barcode += [""] * pad
+                        sku += [""] * pad
+                barcodes.extend(barcode)
+                skus.extend(sku)
         return barcodes, skus
     
     def get_generic_color(self):
@@ -195,7 +257,13 @@ class ProductInfo:
 
     def get_metachart(self):
         df = self._master_data()
-
+        if df.empty:
+            print("no matching style and color found in master data, trying to find with style only")
+            df = self._master_data_wo_color()
+            if df.empty:
+                raise ValueError(
+                    f"No master data row for style='{self.style}' (season='{self.season_code}'), even without color filter — can't build product."
+                )
         row = df.iloc[0]
 
         width_updated_cols = [
@@ -386,8 +454,13 @@ class ProductInfo:
     
     def get_price(self):
         df = self._master_data()
+        if df.empty:
+            print("no matching style and color found in master data, trying to find with style only")
+            df = self._master_data_wo_color()
 
         def _first_value(pattern):
+            if df.empty:
+                return ""
             idx = df.columns.str.contains(pattern).argmax()
             return df.iat[0, idx]
 
@@ -486,12 +559,18 @@ class ProductInfo:
                 tags +="no-returns, Stock, Sale, Off, Garage, Discount, Disc, Additional Stock, additional discontinue items, final-sale, "
 
         df_ssi = self._master_data()
+        if df_ssi.empty:
+            print("no matching style and color found in master data, trying to find with style only")
+            df_ssi = self._master_data_wo_color()
 
-        if df_ssi["DEV | XL | (Y/N)"].iloc[0]=="N":
-            tags = tags.replace("FILTERBY-X/L, L/XL, X/L, ","") 
+        if not df_ssi.empty:
+            if df_ssi["DEV | XL | (Y/N)"].iloc[0]=="N":
+                tags = tags.replace("FILTERBY-X/L, L/XL, X/L, ","")
 
-        if df_ssi["WEB | PRINTED | (Y/N)"].iloc[0] == "Y":
-            tags += "hand printed, printed, "
+            if df_ssi["WEB | PRINTED | (Y/N)"].iloc[0] == "Y":
+                tags += "hand printed, printed, "
+        else:
+            print("no matching style found in master data, skipping XL/printed tag adjustments")
 
         generic_color = self.get_generic_color()[0].title()
 
@@ -571,6 +650,7 @@ class ProductInfo:
         return barcodes
 
     def get_image(self):
+        images = []
         values = self._ppa_data('Links storage')
         df = pd.DataFrame(values[1:],columns=values[0])
 
@@ -579,28 +659,67 @@ class ProductInfo:
                                 .replace(" CREW ", " CR ") \
                                 .replace(" CHUNKY ", " CH ") \
                                 .replace(" LIGHTWEIGHT ", " LW ")
+        
         product_name = product_name.strip()
-        color_raw = self.color.replace("/"," ")
-        file_name_template = f"{product_name.lower().replace(' ','-')}__{color_raw.lower().replace(' ','-')}"
 
-        dfc = df[df["Filename"].str.contains(file_name_template,case=False,na=False)]
-        
-        if dfc.empty:
-            file_name_template_alter = f"{self.style.lower().replace(' ','-')}__{color_raw.lower().replace(' ','-')}"
-            dfc = df[df["Filename"].str.contains(file_name_template_alter,case=False,na=False)]
-        alt = color_raw.lower().replace(" ", "-")
-        images = [
-            {"src": url, "alt": alt}
-            for url in dfc["URL"].tolist()
-        ]
-        if not images:
-            print(f"!!!! No images found in Links storage for template: {file_name_template} and {file_name_template_alter}!!!")
-        
+        for c in self.colors:
+            color_raw = c.replace("/"," ")
+            file_name_template = f"{product_name.lower().replace(' ','-')}__{color_raw.lower().replace(' ','-')}"
+
+            dfc = df[df["Filename"].str.contains(file_name_template,case=False,na=False)]
+            
+            if dfc.empty:
+                file_name_template_alter = f"{self.style.lower().replace(' ','-')}__{color_raw.lower().replace(' ','-')}"
+                dfc = df[df["Filename"].str.contains(file_name_template_alter,case=False,na=False)]
+            alt = color_raw.lower().replace(" ", "-")
+
+            image = [
+                {"src": url, "alt": alt}
+                for url in dfc["URL"].tolist()
+            ]
+
+            if not image:
+                print(f"!!!! No images found in Links storage for template: {file_name_template} and {file_name_template_alter}!!!")
+            
+            images.extend(image)
+
+            
         return images 
+    
+    def get_image_from_files(self):
+        images = []
+        values = self._ppa_data('Links storage')
+        df = pd.DataFrame(values[1:],columns=values[0])
 
-        df_im = self._IM_data()
-        df_im = df_im[df_im["DESCRIPTION"].str.contains(self.style, case=False, na=False)&
-            df_im["WS TAG COLOR"].str.contains(self.colors[0], case=False, na=False)]
+        product_name = f" {self.style} "
+        product_name = product_name.replace(" COTTON ", " CT ") \
+                                .replace(" CREW ", " CR ") \
+                                .replace(" CHUNKY ", " CH ") \
+                                .replace(" LIGHTWEIGHT ", " LW ")
+        
+        product_name = product_name.strip()
 
-        weights = (df_im["PRE COMPONENT WT (PC WT)"].astype(float) * 1000).round().astype(int).tolist()
-        return weights
+        for c in self.colors:
+            color_raw = c.replace("/"," ")
+            file_name_template = f"{product_name.lower().replace(' ','-')}__{color_raw.lower().replace(' ','-')}"
+
+            dfc = df[df["Filename"].str.contains(file_name_template,case=False,na=False)]
+            
+            if dfc.empty:
+                file_name_template_alter = f"{self.style.lower().replace(' ','-')}__{color_raw.lower().replace(' ','-')}"
+                dfc = df[df["Filename"].str.contains(file_name_template_alter,case=False,na=False)]
+            alt = color_raw.lower().replace(" ", "-")
+
+            image = [
+                {"id": media_id, "alt": alt}
+                for media_id in dfc["ID"].tolist()
+                if str(media_id).strip()
+            ]
+            if not image:
+                print(f"!!!! No images found in Links storage for template: {file_name_template} and {file_name_template_alter}!!!")
+            
+            images.extend(image)
+
+            
+        return images 
+    

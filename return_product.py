@@ -14,6 +14,7 @@ import post_update_decision as PUD
 from datetime import date
 sheet = setup.sheet
 
+# worksheet_name = f'May 29, 2026'
 worksheet_name = f'{date.today().strftime("%B %d, %Y")}'
 
 values = setup._get_sheet_values(
@@ -40,8 +41,8 @@ try:
     for idx, row in dfs.iterrows():
         sheet_row = idx + 7 
         STYLE = _first(row['Style']).strip()
-        COLOR = _first(row['Color']).strip()
-        print(f'processing {STYLE} - {COLOR}')
+        COLORS = [_first(row['Color']).strip()]
+        print(f'processing {STYLE} - {COLORS[0]}')
         SEASON = "26 Spring"
         added_to_fp = str(_first(row["Added to full price"])).strip().lower()
         added_to_sale = str(_first(row["Added to sale"])).strip().lower()
@@ -66,10 +67,10 @@ try:
             FP_DC = None
             SALE = False
             continue
-        create_new, PRODUCT_ID,status= PUD.decide(STYLE, COLOR, FP_DC)
+        create_new, PRODUCT_ID, status, DESCRIPTION = PUD.decide(STYLE, COLORS[0], FP_DC)
         if create_new:
             print('no product page found, creating new one......')
-            C = create_pp.CreatePP(STYLE, COLOR, SEASON, SALE)
+            C = create_pp.CreatePP(STYLE, COLORS, SEASON, SALE)
             if FP_DC == "FP":
                 print("proceed creating full price product")
                 link, product_id = C.create_fixed()
@@ -87,11 +88,11 @@ try:
                     body={"values": [[link]]}
                 ).execute()
                 styles.append(STYLE)
-                colors.append(COLOR)
+                colors.append(COLORS[0])
                 product_ids.append(product_id)
                 FP_DCs.append(FP_DC)
         else:
-            U = update_pp.UpdatePP(STYLE,COLOR,SEASON,PRODUCT_ID,SALE)
+            U = update_pp.UpdatePP(STYLE,COLORS,SEASON,PRODUCT_ID,SALE,DESCRIPTION)
 
             if status.upper()== 'DRAFT':
                 if FP_DC =="FP":

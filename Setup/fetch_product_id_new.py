@@ -137,7 +137,9 @@ def fetch():
   
   boilerplate = [
       "Composition: 60% cotton, 40% acrylic",
+      "Composition: 60% Cotton, 40% Acrylic",
       "Composition: 76% acrylic, 12% mohair and 12% wool",
+      "Composition: 76% Acrylic, 12% Mohair and 12% Wool",
       "Sale items are FINAL SALE: No Returns, Refunds or Exchanges.",
       "Why is this on Sale? Sometimes a shopper changes their mind leaving us with perfectly fabulous sweaters, or we have extra yarn with which we knit new sweaters.",
       "Sale items are FINAL SALE: No Returns, Refunds, or Exchanges.",

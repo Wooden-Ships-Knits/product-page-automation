@@ -11,11 +11,33 @@ SEASON = "26 Spring"
 
 data = [
     {
-    "Styles": "RENEE CARDIGAN COTTON".upper(), 
-    "Colors": "Blush Champagne".upper(), 
-    "Production": "fixed"
+    "Styles": "NEWPORT STRIPED TANK COTTON".upper(), 
+    "Colors": [
+        "TWILIGHT SKY/BREAKER WHITE"
+        ], 
+    "Production": "sample" 
         },
-
+    # {
+    # "Styles": "SALTY STRIPED CREW COTTON".upper(), 
+    # "Colors": [
+    #     "WHITE/BLUE/APRICOT"
+    #     ], 
+    # "Production": "sample" 
+    #     },
+    # {
+    # "Styles": "ANNA TEE CHUNKY TOP COTTON".upper(), 
+    # "Colors": [
+    #     "BREAKER WHITE"
+    #     ], 
+    # "Production": "fixed" 
+    #     },
+    # {
+    # "Styles": "ANNA TEE CHUNKY TOP COTTON".upper(), 
+    # "Colors": [
+    #     "BLUE WIND"
+    #     ], 
+    # "Production": "fixed" 
+    #     },
 ]
 
 
@@ -27,7 +49,8 @@ def production(data):
 
     for d in data:
         STYLE = d['Styles'].upper()
-        COLOR = d['Colors'].upper()
+        COLORS = d['Colors']
+        COLOR = d['Colors'][0]
         production_type = d['Production']
 
         if production_type == 'fixed' or production_type == "unfix":
@@ -48,7 +71,7 @@ def production(data):
         if status.upper() == "DRAFT":
             if create_new == True:
                 print(f"{STYLE} - {COLOR} - {SALE}")
-                C = create_pp.CreatePP(STYLE, COLOR, SEASON, SALE, description)
+                C = create_pp.CreatePP(STYLE, COLORS, SEASON, SALE, description)
                 if production_type == 'unfix':
                     link, product_id = C.create_unfix()
                 elif production_type == 'fixed':
@@ -67,7 +90,7 @@ def production(data):
                     product_ids.append(product_id)
 
             elif create_new == False:
-                U = update_pp.UpdatePP(STYLE, COLOR, SEASON, product_id, SALE, description)
+                U = update_pp.UpdatePP(STYLE, COLORS, SEASON, product_id, SALE, description)
                 if production_type == 'unfix':
                     link = U.update_unfix()
                 elif production_type == 'fixed':

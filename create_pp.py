@@ -18,9 +18,10 @@ SIZE_RANGE = {
 }
 
 class CreatePP:
-    def __init__(self,STYLE,COLOR,SEASON,SALE, DESCRIPTION):
+    def __init__(self,STYLE,COLORS,SEASON,SALE, DESCRIPTION):
         self.STYLE= STYLE
-        self.COLOR = COLOR
+        self.COLOR = COLORS[0]
+        self.COLORS = COLORS
         self.SEASON = SEASON
         self.sale = SALE
         self.description = DESCRIPTION
@@ -51,7 +52,7 @@ class CreatePP:
     def create_unfix(self):
         product_id = None
         try:
-            P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=False, sas=False)
+            P= ProductInfo(self.STYLE,self.COLORS,self.SEASON,sample=False, sale=False, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             product_data = self.product_post(P)
 
@@ -75,7 +76,7 @@ class CreatePP:
     def create_fixed(self):
         product_id = None
         try:
-            P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=False, sas=False)
+            P= ProductInfo(self.STYLE,self.COLORS,self.SEASON,sample=False, sale=False, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             qty_ne, skus_ne = P.get_NE_qty()
             qty_ba, skus_ba = P.get_BALI_qty()
@@ -115,7 +116,7 @@ class CreatePP:
     def create_sample(self):
         product_id = None
         try:
-            P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=True, sale=True, sas=False)
+            P= ProductInfo(self.STYLE,self.COLORS,self.SEASON,sample=True, sale=True, sas=False)
             qty_sample = P.get_sample_qty()
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             _, sizes = P.get_metachart()
@@ -145,7 +146,7 @@ class CreatePP:
     def create_sale_stock(self):
         product_id = None
         try:
-            P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=True, sas=False)
+            P= ProductInfo(self.STYLE,self.COLORS,self.SEASON,sample=False, sale=True, sas=False)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             qty_ne, skus_ne = P.get_NE_qty()
             qty_ba, skus_ba = P.get_BALI_qty()
@@ -184,7 +185,7 @@ class CreatePP:
     def create_o4(self):
         product_id = None
         try:
-            P= ProductInfo(self.STYLE,self.COLOR,self.SEASON,sample=False, sale=True, sas=True)
+            P= ProductInfo(self.STYLE,self.COLORS,self.SEASON,sample=False, sale=True, sas=True)
             print(f"ProductInfo created: STYLE={self.STYLE}, COLOR={self.COLOR}, SEASON={self.SEASON}")
             product_data = self.product_post(P)
 
@@ -257,24 +258,25 @@ class CreatePP:
         print(f"type: {_type}")
 
         full_price,price = P.get_price()
-        print(f"full_price: {full_price}")
-        print(f"discounted_price: {full_price}")
+        print(f"compare at price: {full_price}")
+        print(f"price: {price}")
         
         variants = []
         print("processing variant")
-
-        for i, size in enumerate(sizes):
-            variants.append({
-            "option1": f"{size} {SIZE_RANGE[size]}",
-            "option2": self.COLOR.title(),
-            "sku": skus[i],
-            "price": price,
-            "compare_at_price": full_price,
-            "inventory_management": "shopify",
-            "barcode": barcodes[i],
-            "weight": weights[i],
-            "weight_unit": "g",
-        })
+        for j, c in enumerate(self.COLORS):
+            j = j* len(sizes)
+            for i, size in enumerate(sizes):
+                variants.append({
+                "option1": f"{size} {SIZE_RANGE[size]}",
+                "option2": c.title(),
+                "sku": skus[i+j],
+                "price": price,
+                "compare_at_price": full_price,
+                "inventory_management": "shopify",
+                "barcode": barcodes[i+j],
+                "weight": weights[i],
+                "weight_unit": "g",
+            })
 
         options = [
         {
@@ -283,7 +285,7 @@ class CreatePP:
         },
         {
             "name": "Color",
-            "values": [self.COLOR.title()]
+            "values": [c.title() for c in self.COLORS]
         }
         ]
 
