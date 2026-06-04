@@ -172,7 +172,9 @@ class ProductInfo:
             df_im = df_im[df_im["DESCRIPTION"].str.contains('S/M', case=False, na=False)]
 
         weights = (df_im["PRE COMPONENT WT (PC WT)"].astype(float) * 1000).round().astype(int).tolist()
-        sizes = df_im["DESCRIPTION"].str.split("-").str[-1].tolist()
+        # strip so sizes match get_metachart() keys ("X/S", not " X/S"), otherwise
+        # weight_by_size.get(size) misses and every weight falls back to 0
+        sizes = df_im["DESCRIPTION"].str.split("-").str[-1].str.strip().tolist()
         return sizes, weights
 
     def get_sizes(self):

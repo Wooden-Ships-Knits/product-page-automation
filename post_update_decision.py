@@ -22,7 +22,7 @@ def decide(STYLE,COLOR,FP_DC):
         print("Description does not exist")
         description = ""
     else :
-        description =df_desc["Description"].iloc[0]
+        description =df_desc["Description"].iloc[-1]
 
     df = df[
         df["Style"].str.contains(STYLE, case=False, na=False) &
