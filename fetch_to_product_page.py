@@ -165,9 +165,11 @@ class ProductInfo:
 
     def get_weight(self):
         df_im = self._IM_data()
-        df_im = df_im[(df_im["DESCRIPTION"].str.contains(self.style, case=False,na=False)) &
-            (df_im["WS TAG COLOR"].str.contains(self.color, case=False,na=False))]
-
+        # df_im = df_im[(df_im["DESCRIPTION"].str.contains(self.style, case=False,na=False)) &
+        #     (df_im["WS TAG COLOR"].str.contains(self.color, case=False,na=False))]
+        df_im = df_im[df_im["DESCRIPTION"].str.contains(self.style, case=False,na=False)]
+        df_im = df_im[df_im["WS TAG COLOR"].str.contains(df_im["WS TAG COLOR"].iloc[0], case=False,na=False)]
+        
         if self.sample ==True:
             df_im = df_im[df_im["DESCRIPTION"].str.contains('S/M', case=False, na=False)]
 
@@ -712,6 +714,8 @@ class ProductInfo:
                 dfc = df[df["Filename"].str.contains(file_name_template_alter,case=False,na=False)]
             alt = color_raw.lower().replace(" ", "-")
 
+            dfc = dfc.sort_values("Filename")  # Ensure consistent order, adjust if needed
+
             image = [
                 {"id": media_id, "alt": alt}
                 for media_id in dfc["ID"].tolist()
@@ -722,6 +726,5 @@ class ProductInfo:
             
             images.extend(image)
 
-            
         return images 
     

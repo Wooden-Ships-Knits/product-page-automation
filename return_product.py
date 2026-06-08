@@ -14,8 +14,8 @@ import post_update_decision as PUD
 from datetime import date
 sheet = setup.sheet
 
-# worksheet_name = f'May 29, 2026'
-worksheet_name = f'{date.today().strftime("%B %d, %Y")}'
+worksheet_name = f'Jun 5, 2026'
+# worksheet_name = f'{date.today().strftime("%B %d, %Y")}'
 
 values = setup._get_sheet_values(
         sheet_id=os.getenv("RETURN_ID"),

@@ -11,33 +11,12 @@ SEASON = "26 Spring"
 
 data = [
     {
-    # "Styles": "NEWPORT STRIPED TANK COTTON".upper(), 
-    # "Colors": [
-    #     "TWILIGHT SKY/BREAKER WHITE"
-    #     ], 
-    # "Production": "sample" 
-    #     },
-    # {
-    "Styles": "CROP BOYFRIEND CREW COTTON".upper(), 
+    "Styles": "KATE STRIPED V COTTON".upper(), 
     "Colors": [
-        "REAL RED"
+        "White/Black/Khaki",
         ], 
     "Production": "fixed" 
         },
-    # {
-    # "Styles": "ANNA TEE CHUNKY TOP COTTON".upper(), 
-    # "Colors": [
-    #     "BREAKER WHITE"
-    #     ], 
-    # "Production": "fixed" 
-    #     },
-    # {
-    # "Styles": "ANNA TEE CHUNKY TOP COTTON".upper(), 
-    # "Colors": [
-    #     "BLUE WIND"
-    #     ], 
-    # "Production": "fixed" 
-    #     },
 ]
 
 
@@ -132,6 +111,6 @@ def production(data):
 
 
 if __name__ == "__main__":
-    fetch_id.fetch()
-    fetch_image.list_shop_files()
+    # fetch_id.fetch()
+    # fetch_image.list_shop_files()
     production(data)
