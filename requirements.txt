@@ -1,0 +1,12 @@
+# PPA — actual runtime dependencies (Python 3.9.6)
+# Derived from the project's real imports, not a global pip freeze.
+# numpy pinned <2: pandas on this interpreter is built against numpy 1.x.
+numpy==1.26.4
+pandas==2.3.3
+openpyxl==3.1.5          # pandas .xlsx engine for the IM Master workbook
+gspread==6.2.1
+google-auth==2.50.0
+google-api-python-client==2.197.0
+python-dotenv==1.2.1
+openai==2.43.0
+requests==2.32.5

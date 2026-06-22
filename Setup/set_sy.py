@@ -143,3 +143,5 @@ def get_collection_id(title):
             return c["id"]
 
     return None
+
+print(get_token())

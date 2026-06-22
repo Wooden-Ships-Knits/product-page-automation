@@ -14,8 +14,8 @@ import post_update_decision as PUD
 from datetime import date
 sheet = setup.sheet
 
-worksheet_name = f'Jun 5, 2026'
-# worksheet_name = f'{date.today().strftime("%B %d, %Y")}'
+# worksheet_name = f'Jun 5, 2026'
+worksheet_name = date.today().strftime("%b %d, %Y")
 
 values = setup._get_sheet_values(
         sheet_id=os.getenv("RETURN_ID"),
@@ -70,7 +70,7 @@ try:
         create_new, PRODUCT_ID, status, DESCRIPTION = PUD.decide(STYLE, COLORS[0], FP_DC)
         if create_new:
             print('no product page found, creating new one......')
-            C = create_pp.CreatePP(STYLE, COLORS, SEASON, SALE)
+            C = create_pp.CreatePP(STYLE, COLORS, SEASON, SALE, DESCRIPTION)
             if FP_DC == "FP":
                 print("proceed creating full price product")
                 link, product_id = C.create_fixed()

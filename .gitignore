@@ -13,3 +13,6 @@ note.ipynb
 *.xlsx
 *.csv
 list_locations.py
+Lrequirements.txt
+*.log
+*.sh

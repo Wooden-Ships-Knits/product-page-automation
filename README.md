@@ -33,6 +33,8 @@ You also need:
 ```
 PPA/
 ├── main.py                       Manual entry — a `data` list of {Styles, Colors, Production} dicts, looped by production()
+├── cron_fetch.py                 Standalone runner for the two fetch jobs (fetch_id.fetch + list_shop_files); for scheduling
+├── run_fetch.sh                  Wrapper that cd's to project root + uses the venv, then runs cron_fetch.py (logs to cron_fetch.log / launchd_fetch.log)
 ├── return_product.py             Bulk entry — iterates a daily Master Grid of Return tab and creates/updates
 ├── create_pp.py                  CreatePP class — 5 create_* methods + product_post + _run_product_set + set_inventory_metafield
 ├── update_pp.py                  UpdatePP class — 5 update_* methods mirroring create_pp (productSet update + variant preservation)
@@ -311,7 +313,37 @@ python main.py
 
 After the loop, if any product was created, append the accumulated rows to the first empty `Style` row of `PP SY LIST` (column **A**). Updates do **not** append (the row is presumed already present).
 
-> The `fetch_id.fetch()` / `fetch_image.list_shop_files()` calls in `__main__` are currently commented out — uncomment to refresh the `PP SY LIST` snapshot and `Links storage` before a run.
+> The `fetch_id.fetch()` / `fetch_image.list_shop_files()` calls in `main.py`'s `__main__` are commented out on purpose — those two snapshots now run on their own hourly schedule (see "Scheduled fetch refresh" below), so `main.py` only does `production(data)`. Uncomment them only if you want a one-off manual refresh inside a `main.py` run.
+
+### Scheduled fetch refresh (`cron_fetch.py` + LaunchAgent)
+
+The two snapshot jobs that keep the lookup sheets fresh —
+
+- `fetch_id.fetch()` → refreshes the `PP SY LIST` Product-ID/status snapshot
+- `fetch_image.list_shop_files()` → refreshes the `Links storage` image Files-GID list
+
+— run **automatically every hour** via a macOS **LaunchAgent**, independent of the Streamlit app (which only runs `production(data)`).
+
+Pieces:
+
+- [cron_fetch.py](cron_fetch.py) — imports both modules and calls the two functions, with a timestamped log header.
+- [run_fetch.sh](run_fetch.sh) — wrapper that `cd`s to the project root (required — credentials load via a relative path) and invokes `venv/bin/python cron_fetch.py`, appending stdout/stderr to a log.
+- `~/Library/LaunchAgents/com.ppa.fetch.plist` — the schedule (`StartCalendarInterval` `Minute 0` = top of every hour). Installed in the user's own LaunchAgents, so **no admin / Full Disk Access** is needed (unlike system `cron`, which can't reach the Google Drive CloudStorage path without it).
+
+Logs: `launchd_fetch.log` (LaunchAgent runs) and `cron_fetch.log` (manual `run_fetch.sh` runs), both in the project folder.
+
+Manage it:
+
+```bash
+launchctl start com.ppa.fetch                                   # run once now (test)
+launchctl list | grep ppa                                       # confirm it's loaded
+launchctl unload ~/Library/LaunchAgents/com.ppa.fetch.plist     # stop / disable
+launchctl load -w ~/Library/LaunchAgents/com.ppa.fetch.plist    # re-enable
+```
+
+> A LaunchAgent only fires while you're logged in and the Mac is awake. A run missed during sleep/shutdown is executed once shortly after the next login.
+>
+> An inert hourly `cron` entry also exists (`crontab -l`) from an earlier attempt; it fails silently without Full Disk Access and can be ignored or removed with `crontab -r`.
 
 ### Bulk, sheet-driven (`return_product.py`)
 

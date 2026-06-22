@@ -6,21 +6,20 @@ import create_pp
 import update_pp
 import post_update_decision as PUD
 from Setup import setup
+from config.varia import data
+from pathlib import Path
 sheet = setup.sheet
 SEASON = "26 Spring"
 
-data = [
-    {
-    "Styles": "KATE STRIPED V COTTON".upper(), 
-    "Colors": [
-        "White/Black/Khaki",
-        ], 
-    "Production": "fixed" 
-        },
-]
 
 
 def production(data):
+    out_file = Path("Output/product_link.txt")
+    out_file.parent.mkdir(exist_ok=True)
+    if out_file.exists():
+        out_file.unlink()          # clear stale link from a previous run
+
+
     styles = []
     colors = []
     product_ids = []
@@ -85,6 +84,8 @@ def production(data):
             print(f'{STYLE} - {COLOR} not found or an active pp. skipping')
 
         print(link)
+        if link:
+            out_file.write_text(link, encoding="utf-8")   # persist for the launcher
 
     if styles:
         values = setup._get_sheet_values(
@@ -109,8 +110,5 @@ def production(data):
                 body={"values": new_rows}
             ).execute()
 
-
 if __name__ == "__main__":
-    # fetch_id.fetch()
-    # fetch_image.list_shop_files()
     production(data)
