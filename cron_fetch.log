@@ -284,3 +284,522 @@ Wrote 10120 files to 'Links storage'
   warnings.warn(eol_message.format("3.9"), FutureWarning)
 /Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
   warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-22 13:00:08 =====
+Fetched 10811 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+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
+
+===== cron_fetch run @ 2026-06-22 13:00:06 =====
+Fetched 10811 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-22 15:00:04 =====
+Fetched 10811 products
+Data uploaded to Google Sheets ✅
+Wrote 10124 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-22 16:00:05 =====
+Fetched 10811 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-22 17:00:04 =====
+Fetched 10813 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-22 18:00:04 =====
+Fetched 10813 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-22 19:00:04 =====
+Fetched 10813 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-22 20:00:04 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-22 21:00:04 =====
+Fetched 10814 products
+Traceback (most recent call last):
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/cron_fetch.py", line 22, in <module>
+    main()
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/cron_fetch.py", line 16, in main
+    fetch_id.fetch()
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/Setup/fetch_product_id_new.py", line 158, in fetch
+    sheet.values().clear(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/_helpers.py", line 130, in positional_wrapper
+    return wrapped(*args, **kwargs)
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/http.py", line 938, in execute
+    raise HttpError(resp, content, uri=self.uri)
+googleapiclient.errors.HttpError: <HttpError 500 when requesting https://sheets.googleapis.com/v4/spreadsheets/1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk/values/PP%20SY%20LIST%21A2:clear?alt=json returned "Internal error encountered.". Details: "Internal error encountered.">
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-22 22:00:05 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-22 23:00:04 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 00:00:05 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 01:00:04 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 02:00:04 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 03:00:04 =====
+Fetched 10814 products
+Traceback (most recent call last):
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/cron_fetch.py", line 22, in <module>
+    main()
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/cron_fetch.py", line 16, in main
+    fetch_id.fetch()
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/Setup/fetch_product_id_new.py", line 163, in fetch
+    sheet.values().update(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/_helpers.py", line 130, in positional_wrapper
+    return wrapped(*args, **kwargs)
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/http.py", line 923, in execute
+    resp, content = _retry_request(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/http.py", line 222, in _retry_request
+    raise exception
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/http.py", line 191, in _retry_request
+    resp, content = http.request(uri, method, *args, **kwargs)
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google_auth_httplib2.py", line 216, in request
+    response, content = self.http.request(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/httplib2/__init__.py", line 1727, in request
+    (response, content) = self._request(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/httplib2/__init__.py", line 1447, in _request
+    (response, content) = self._conn_request(conn, request_uri, method, body, headers)
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/httplib2/__init__.py", line 1370, in _conn_request
+    conn.request(method, request_uri, body, headers)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1257, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1303, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1252, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1051, in _send_output
+    self.send(chunk)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 973, in send
+    self.sock.sendall(data)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/ssl.py", line 1204, in sendall
+    v = self.send(byte_view[count:])
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/ssl.py", line 1173, in send
+    return self._sslobj.write(data)
+socket.timeout: The write operation timed out
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 04:00:04 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 05:00:04 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 06:00:04 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 07:00:04 =====
+Fetched 10814 products
+Traceback (most recent call last):
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/cron_fetch.py", line 22, in <module>
+    main()
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/cron_fetch.py", line 16, in main
+    fetch_id.fetch()
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/Setup/fetch_product_id_new.py", line 163, in fetch
+    sheet.values().update(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/_helpers.py", line 130, in positional_wrapper
+    return wrapped(*args, **kwargs)
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/http.py", line 923, in execute
+    resp, content = _retry_request(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/http.py", line 222, in _retry_request
+    raise exception
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/http.py", line 191, in _retry_request
+    resp, content = http.request(uri, method, *args, **kwargs)
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google_auth_httplib2.py", line 216, in request
+    response, content = self.http.request(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/httplib2/__init__.py", line 1727, in request
+    (response, content) = self._request(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/httplib2/__init__.py", line 1447, in _request
+    (response, content) = self._conn_request(conn, request_uri, method, body, headers)
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/httplib2/__init__.py", line 1370, in _conn_request
+    conn.request(method, request_uri, body, headers)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1257, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1303, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1252, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1051, in _send_output
+    self.send(chunk)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 973, in send
+    self.sock.sendall(data)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/ssl.py", line 1204, in sendall
+    v = self.send(byte_view[count:])
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/ssl.py", line 1173, in send
+    return self._sslobj.write(data)
+socket.timeout: The write operation timed out
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 08:00:59 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 09:00:04 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10120 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 10:00:04 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10124 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 11:00:04 =====
+Fetched 10814 products
+Data uploaded to Google Sheets ✅
+Wrote 10124 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 12:00:04 =====
+Fetched 10815 products
+Traceback (most recent call last):
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/cron_fetch.py", line 22, in <module>
+    main()
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/cron_fetch.py", line 16, in main
+    fetch_id.fetch()
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/Setup/fetch_product_id_new.py", line 163, in fetch
+    sheet.values().update(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/_helpers.py", line 130, in positional_wrapper
+    return wrapped(*args, **kwargs)
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/http.py", line 923, in execute
+    resp, content = _retry_request(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/http.py", line 222, in _retry_request
+    raise exception
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/googleapiclient/http.py", line 191, in _retry_request
+    resp, content = http.request(uri, method, *args, **kwargs)
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google_auth_httplib2.py", line 216, in request
+    response, content = self.http.request(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/httplib2/__init__.py", line 1727, in request
+    (response, content) = self._request(
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/httplib2/__init__.py", line 1447, in _request
+    (response, content) = self._conn_request(conn, request_uri, method, body, headers)
+  File "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/httplib2/__init__.py", line 1370, in _conn_request
+    conn.request(method, request_uri, body, headers)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1257, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1303, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1252, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1051, in _send_output
+    self.send(chunk)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 973, in send
+    self.sock.sendall(data)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/ssl.py", line 1204, in sendall
+    v = self.send(byte_view[count:])
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/ssl.py", line 1173, in send
+    return self._sslobj.write(data)
+socket.timeout: The write operation timed out
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 13:00:04 =====
+Fetched 10815 products
+Data uploaded to Google Sheets ✅
+Wrote 10124 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 14:00:05 =====
+Fetched 10815 products
+Data uploaded to Google Sheets ✅
+Wrote 10124 files to 'Links storage'
+===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+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
+
+===== cron_fetch run @ 2026-06-23 15:00:04 =====
+Fetched 10816 products
+Data uploaded to Google Sheets ✅
+Wrote 10128 files to 'Links storage'
+===== done =====
