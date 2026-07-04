@@ -1,9 +1,12 @@
 """
 tempat variable untuk berbagai macam perubahan mulai dari nama sheet dll
 """
-IM_header = 56
-season = "26 Spring"
 
+season = "26 Spring"
+season_name = season.split(" ")[1]
+if season_name == "Spring":
+    IM_header = 56
+else: IM_header = 53
 Style = "KELLY TOP LIGHTWEIGHT"
 Color = ["BLUE HEAVEN"]
 production_type = "fixed"
