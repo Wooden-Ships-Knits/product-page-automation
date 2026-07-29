@@ -26,7 +26,9 @@ class ProductInfo:
         self.seasonal_letter = season.split()[1][0]
         self.sas = sas
         self.season_code = self.seasonal_letter+season.split()[0]           # 26 SPRING -> S26
-        self.IM_path = f"/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com/Shared drives/PTIF SERVER/Collection/{self.season}/IM/{self.season_code} IM MASTER.xlsx"
+
+        # self.IM_path = f"/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com/Shared drives/PTIF SERVER/Collection/{self.season}/IM/{self.season_code} IM MASTER.xlsx"
+
         # self.IM_path = f"Copy of {self.season_code} IM MASTER.xlsx"
         self.sizes = ["X/S (2/4)", "S/M (6/8)", "M/L (10/12)", "X/L (14/16)"]
         if self.seasonal_letter=="S":
@@ -61,7 +63,7 @@ class ProductInfo:
             title_page = sale_title_page
 
         return title_page, sale_title_page, sale_desc, thread_comp
-    
+
     def _master_data(self):
         values_md = setup._get_sheet_values(
             sheet_id=os.getenv("MASTER_DATA_ID"),
@@ -152,9 +154,46 @@ class ProductInfo:
         return df_md
 
 
+    def get_im_path(self):
+        df_md = self._master_data()
+        code = str(df_md['FROM IM | CODE'].iloc[0]).strip()
+
+        if code.startswith('PK'):
+            code_number = int(code[2:])      # full digits, not one char; int() not .astype()
+        elif code.startswith('K'):
+            code_number = int(code[1:])
+        else:
+            raise ValueError(f"Unexpected IM CODE format: {code!r}")   # no unbound var
+
+        season_name   = 'Fall' if code_number % 2 == 1 else 'Spring'   # title-case → right folder + letter
+        season_number = code_number // 2 - 2                            # 56/57 → 26
+
+        season_year = f"{season_number} {season_name}"    # "26 Fall"
+        season_code = f"{season_name[0]}{season_number}"  # "F26"
+        return f"/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com/Shared drives/PTIF SERVER/Collection/{season_year}/IM/{season_code} IM MASTER.xlsx"
+
+    def header_finder(self) -> int:
+        """Read the IM Master workbook and find the header row by locating the
+        first cell in column A whose text is the word 'CAT'.
+
+        Returns that row's 0-based position — i.e. a drop-in for the value pandas
+        wants in read_excel(header=...), the same slot IM_header currently fills.
+        (Excel's visible 1-based row number = returned value + 1.)
+        """
+        # Read ONLY column A, with no header, so every row keeps its natural
+        # top-to-bottom position (0, 1, 2, …). Same workbook _IM_data reads.
+        im_path = self.get_im_path()
+        col_a = pd.read_excel(im_path, header=None, usecols="A").iloc[:, 0]
+
+        for pos, value in col_a.items():          # pos is the 0-based row position
+            if isinstance(value, str) and "CAT" in value.upper().split():
+                return pos
+
+        raise ValueError(f"'CAT' not found in column A of {im_path}")
+
     def _IM_data(self):
-        return setup._read_excel_cached(self.IM_path, header=IM_header)
-    
+        return setup._read_excel_cached(self.get_im_path(), header=self.header_finder())
+            
     def _ppa_data(self,worksheet_name):
         values = setup._get_sheet_values(
             sheet_id=os.getenv("PPA_SHEET_ID"),

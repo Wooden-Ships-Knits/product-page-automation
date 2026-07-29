@@ -9455,3 +9455,31 @@ Fetched 10852 products
 Data uploaded to Google Sheets ✅
 Wrote 10603 files to 'Links storage'
 ===== done =====
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+
+===== cron_fetch run @ 2026-07-29 18:00:04 =====
+Fetched 10853 products
+Data uploaded to Google Sheets ✅
+Wrote 10603 files to 'Links storage'
+===== done =====
+
+===== cron_fetch run @ 2026-07-29 18:00:05 =====
+Fetched 10853 products
+Data uploaded to Google Sheets ✅
+Wrote 10603 files to 'Links storage'
+===== done =====
