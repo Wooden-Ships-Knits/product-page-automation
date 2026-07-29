@@ -165,10 +165,11 @@ class ProductInfo:
 
     def get_weight(self):
         df_im = self._IM_data()
+        WS_TAG_COLOR = df_im.columns[df_im.columns.str.contains("WS TAG COLOR", case=False, na=False)][0]
         # df_im = df_im[(df_im["DESCRIPTION"].str.contains(self.style, case=False,na=False)) &
         #     (df_im["WS TAG COLOR"].str.contains(self.color, case=False,na=False))]
         df_im = df_im[df_im["DESCRIPTION"].str.contains(self.style, case=False,na=False)]
-        df_im = df_im[df_im["WS TAG COLOR"].str.contains(df_im["WS TAG COLOR"].iloc[0], case=False,na=False)]
+        df_im = df_im[df_im[WS_TAG_COLOR].str.contains(df_im[WS_TAG_COLOR].iloc[0], case=False,na=False)]
         
         if self.sample ==True:
             df_im = df_im[df_im["DESCRIPTION"].str.contains('S/M', case=False, na=False)]

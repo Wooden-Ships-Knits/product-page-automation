@@ -34,6 +34,11 @@ if _os.path.exists(_lp):
     except Exception as _e:
         print(f"[launcher] could not read {_lp}: {_e}")
 
+# Recompute season-derived values AFTER the override, so a season set by the
+# dashboard (e.g. "26 Fall") drives IM_header too — not just the hardcoded default.
+season_name = season.split(" ")[1]
+IM_header = 56 if season_name == "Spring" else 53
+
 # Build data AFTER applying any override, so the dashboard values take effect.
 # (Building it earlier would freeze in the hardcoded defaults above.)
 data = [

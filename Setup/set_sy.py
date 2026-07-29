@@ -130,7 +130,7 @@ def publish_to_all_channels(product_id,sale=True):
     elif result["data"]["publishablePublish"]["userErrors"]:
         print("User Errors:", result["data"]["publishablePublish"]["userErrors"])
     else:
-        print("✅ Product assigned to all sales channels successfully.")
+        print("Product assigned to all sales channels successfully.")
 
     return result
 

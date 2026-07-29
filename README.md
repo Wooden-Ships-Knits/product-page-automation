@@ -388,3 +388,61 @@ The whole loop is wrapped in `try/except: traceback.print_exc()` so one bad row 
 - **`PP SY LIST` Page Status is a stale snapshot** — only refreshed by `fetch_product_id_new.py`. Between snapshots a product can drift DRAFT → ACTIVE without `PUD.decide` knowing.
 - **`PUD.decide` uses substring + regex matching** (`str.contains`). Prefix-colliding styles (`EMORY TIPPED L/S TOP` vs `… V2`) can match the wrong row.
 - **Header-duplication safety in `return_product.py`**: the loop uses `_first()` because the Master Grid can have duplicate column headers. Don't remove it.
+
+---
+
+## 11. Off-machine / cloud deployment
+
+The project currently assumes it runs **on a Mac with Google Drive for Desktop mounted**. Two host-specific assumptions must be removed before it can run on any cloud VM/container (Azure, GCP, AWS — all the same here):
+
+### 11a. The IM Master workbook is read from a local filesystem path
+
+`ProductInfo.__init__` ([fetch_to_product_page.py:29](fetch_to_product_page.py#L29)) hardcodes:
+
+```python
+self.IM_path = "/Users/woodenship/Library/CloudStorage/GoogleDrive-.../Shared drives/PTIF SERVER/Collection/{season}/IM/{code} IM MASTER.xlsx"
+```
+
+This only resolves because **Drive for Desktop mounts Drive as a local folder**. No cloud host has that mount — the path throws `FileNotFoundError` off-machine.
+
+**Fix: read the workbook via the Google Drive API instead of the filesystem.** The service account already carries Drive scope ([Setup/setup.py:18-26](Setup/setup.py#L18-L26)), so the same credential can download the `.xlsx` by **file ID** into memory and hand the bytes to pandas:
+
+```python
+from googleapiclient.discovery import build
+from io import BytesIO
+import pandas as pd
+
+drive = build("drive", "v3", credentials=creds)
+buf = BytesIO(drive.files().get_media(fileId=IM_MASTER_FILE_ID,
+                                       supportsAllDrives=True).execute())
+df = pd.read_excel(buf, header=IM_header)
+```
+
+Store the file ID in `.env` alongside the other IDs. Two gotchas, both because the file lives in a **Shared Drive**:
+
+- The service-account email must be added as a **member of the Shared Drive** (Viewer is enough) — sharing the single file isn't always sufficient.
+- Every Drive call needs **`supportsAllDrives=True`** (and `includeItemsFromAllDrives=True` when listing), or the file appears not to exist.
+
+> `rclone mount` (FUSE-mounting Drive on the VM) would keep the path-based code working, but it's fragile for a server (mount drops, token refresh) — the API route is preferred.
+
+### 11b. Credentials load from a relative file path
+
+`credentials/dialy-report-automation-e20c53e67542.json` is read by a **relative path**, so it must be present in the working directory. On a cloud host, ship it as a **mounted secret / env var**, not a checked-in file.
+
+- **GCP advantage:** you can drop the key file entirely. Attach the service account to the resource (Compute Engine / Cloud Run / Cloud Function) and let the client libraries pick it up via **Application Default Credentials** — `google.auth.default(scopes=[...])` replaces `Credentials.from_service_account_file(...)`. Same code path works locally (falls back to `gcloud auth` or `GOOGLE_APPLICATION_CREDENTIALS`). Still requires Shared-Drive membership and the Drive/Sheets APIs enabled in the project; the `cloud-platform` scope does **not** include Drive.
+- **Azure/AWS:** no keyless equivalent for Google APIs — mount the JSON key as a secret.
+
+### 11c. Scheduling moves off the local LaunchAgent
+
+The hourly fetch jobs (§9, "Scheduled fetch refresh") currently run from a macOS LaunchAgent that only fires while this Mac is awake. In the cloud, replace it with a native always-on scheduler:
+
+| Local piece | GCP | Azure |
+|---|---|---|
+| LaunchAgent / cron timer | Cloud Scheduler | Logic Apps / Container Apps Jobs timer |
+| `run_fetch.sh` + venv | Cloud Run Job (container) | Container Apps Job |
+| `launchd_fetch.log` | Cloud Logging | Azure Monitor |
+| service-account key file | attached SA (keyless) | mounted secret |
+
+So `cron_fetch.py` → containerize → run as a scheduled job, no Mac required and no Full Disk Access dance.
+
+> **Summary:** the only real code change is §11a (swap the hardcoded `.xlsx` path for a Drive-API download by file ID). Everything else — Sheets, Shopify, inventory — is already pure HTTPS API and portable as-is.

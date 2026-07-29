@@ -6,10 +6,10 @@ import create_pp
 import update_pp
 import post_update_decision as PUD
 from Setup import setup
-from config.varia import data
+from config.varia import data, season
 from pathlib import Path
 sheet = setup.sheet
-SEASON = "26 Spring"
+SEASON = season   # driven by config/varia.py (and the interface's launcher_params.json override)
 
 
 
