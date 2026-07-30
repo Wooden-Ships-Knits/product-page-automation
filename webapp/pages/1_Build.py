@@ -28,13 +28,18 @@ if run_lock.is_locked():
 with st.form("build"):
     season = st.text_input("Season", value="26 Fall", help="e.g. '26 Fall' or '26 Spring'")
     style = st.text_input("Style", help="Must match the master-data DESCRIPTION exactly")
-    colors_raw = st.text_input("Colors", help="One or more, comma-separated (e.g. BLACK /PURE SNOW)")
+    colors_raw = st.text_area(
+        "Colors (one per line)",
+        help="One colorway per line — each line becomes an item in the Colors list.\n"
+             "e.g.\nBLACK /PURE SNOW\nNAVY",
+        height=100,
+    )
     prod_type = st.selectbox("Production type", PRODUCTION_TYPES)
     confirm = st.checkbox("I understand this creates/updates **live Shopify products**.")
     submitted = st.form_submit_button("Run build")
 
 if submitted:
-    colors = [c.strip() for c in colors_raw.split(",") if c.strip()]
+    colors = [c.strip() for c in colors_raw.splitlines() if c.strip()]
     if not style.strip() or not colors:
         st.error("Style and at least one color are required.")
         st.stop()

@@ -158,12 +158,14 @@ class ProductInfo:
         df_md = self._master_data()
         code = str(df_md['FROM IM | CODE'].iloc[0]).strip()
 
+        # CODE looks like 'K57CPE3W615' / 'PK57…' — the season number is exactly the
+        # 2 digits right after the K/PK prefix; the rest is the style code.
         if code.startswith('PK'):
-            code_number = int(code[2:])      # full digits, not one char; int() not .astype()
+            code_number = int(code[2:4])
         elif code.startswith('K'):
-            code_number = int(code[1:])
+            code_number = int(code[1:3])
         else:
-            raise ValueError(f"Unexpected IM CODE format: {code!r}")   # no unbound var
+            raise ValueError(f"Unexpected IM CODE format: {code!r}")
 
         season_name   = 'Fall' if code_number % 2 == 1 else 'Spring'   # title-case → right folder + letter
         season_number = code_number // 2 - 2                            # 56/57 → 26
@@ -232,6 +234,21 @@ class ProductInfo:
         ## this was added in newer vesion
         # we dont need this anymore though just let it be.
 
+    def get_cat_code(self):
+        """The K##/PK## category prefix exactly as written in master data
+        'FROM IM | CODE' (e.g. 'K57CPE3W615' -> 'K57', 'PK57...' -> 'PK57').
+
+        Source of truth for K-vs-PK and the season number — used to filter the
+        UPC list, instead of the season-computed self.cat_code + sas flag.
+        """
+        df_md = self._master_data()
+        code = str(df_md['FROM IM | CODE'].iloc[0]).strip()
+        if code.startswith('PK'):
+            return code[:4]   # 'PK' + 2 digits
+        elif code.startswith('K'):
+            return code[:3]   # 'K' + 2 digits
+        raise ValueError(f"Unexpected IM CODE format: {code!r}")
+
     def get_sku_barcode(self):
         if self.sample ==True:
             sheet_name = "SAMPLE UPC LIST"
@@ -246,26 +263,26 @@ class ProductInfo:
 
         df = pd.DataFrame(values[5:], columns=values[4]) ### need to inform PPIC we should change the header row
         barcodes, skus = [], []
+        cat = self.get_cat_code()   # K##/PK## from master data 'FROM IM | CODE'
         for c in self.colors:
             dfp= df[
                 (df["Style"].str.casefold() == self.style.casefold()) &
                 (df["Color"].str.contains(c, case=False, na=False))## need an adjustment for this when we
             ]
-            if self.sas ==True:
-                dfp= dfp[dfp["Lineitem sku"].str.contains(f"P{self.cat_code}", case=False, na=False)]
-            else:
-                dfp = dfp[dfp["Lineitem sku"].str.contains(self.cat_code, case=False, na=False)]
+            # Filter to this style's category by the master-data K##/PK## prefix
+            # (source of truth for K vs PK), not the season-computed self.cat_code.
+            dfp = dfp[dfp["Lineitem sku"].str.contains(cat, case=False, na=False)]
 
             if self.sample == True:
                 if dfp.empty:
-                    print(f"No SAMPLE UPC row for style={self.style}, color={c}, cat_code={self.cat_code} — using blank SKU/barcode.")
+                    print(f"No SAMPLE UPC row for style={self.style}, color={c}, cat_code={cat} — using blank SKU/barcode.")
                     barcode_val, sku_val = "", ""
                 else:
                     barcode_val, sku_val = dfp["UPC Barcode"].iloc[0], dfp["Lineitem sku"].iloc[0]
                 barcodes, skus = [0, barcode_val, 0, 0], [0, sku_val, 0, 0]
             else:
                 if dfp.empty:
-                    print(f"No PRODUCTION UPC row for style={self.style}, color={c}, cat_code={self.cat_code} — extending with blank SKU/barcode list.")
+                    print(f"No PRODUCTION UPC row for style={self.style}, color={c}, cat_code={cat} — extending with blank SKU/barcode list.")
                     barcode, sku = [""] * 4, [""] * 4
                 else:
                     barcode, sku = dfp["UPC Barcode"].tolist(), dfp["Lineitem sku"].tolist()

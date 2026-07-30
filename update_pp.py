@@ -414,15 +414,28 @@ class UpdatePP:
             variant_id = variant["id"]
 
             for location_id, qty in locations:
-                requests.post(
-                    "https://wooden-ships.myshopify.com/admin/api/2026-01/inventory_levels/set.json",
-                    headers=headers,
-                    json={
-                        "location_id": location_id,
-                        "inventory_item_id": inventory_item_id,
-                        "available": qty,
-                    },
-                )
+                if _to_int(qty) > 0:
+                    requests.post(
+                        "https://wooden-ships.myshopify.com/admin/api/2026-01/inventory_levels/set.json",
+                        headers=headers,
+                        json={
+                            "location_id": location_id,
+                            "inventory_item_id": inventory_item_id,
+                            "available": qty,
+                        },
+                    )
+                else:
+                    # qty == 0 -> deactivate this location (delete the inventory level)
+                    # so the variant reads "not stocked here" instead of "0 available".
+                    # Safe: the variant stays stocked at its other location(s).
+                    requests.delete(
+                        "https://wooden-ships.myshopify.com/admin/api/2026-01/inventory_levels.json",
+                        headers=headers,
+                        params={
+                            "inventory_item_id": inventory_item_id,
+                            "location_id": location_id,
+                        },
+                    )
 
             requests.post(
                 "https://wooden-ships.myshopify.com/admin/api/2026-01/metafields.json",
