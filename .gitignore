@@ -16,7 +16,10 @@ list_locations.py
 Lrequirements.txt
 *.log
 *.sh
+# exception: the Docker fetch service needs this script in the repo
+!deploy/fetch_loop.sh
 
 venv/
 .claude/
 .vscode/
+
