@@ -35,16 +35,12 @@ with st.form("build"):
         height=100,
     )
     prod_type = st.selectbox("Production type", PRODUCTION_TYPES)
-    confirm = st.checkbox("I understand this creates/updates **live Shopify products**.")
     submitted = st.form_submit_button("Run build")
 
 if submitted:
     colors = [c.strip() for c in colors_raw.splitlines() if c.strip()]
     if not style.strip() or not colors:
         st.error("Style and at least one color are required.")
-        st.stop()
-    if not confirm:
-        st.error("Please tick the confirmation box before running.")
         st.stop()
 
     try:
