@@ -20,6 +20,7 @@ services:
       IM_COLLECTION_BASE: /data/im_cache/Collection   # get_im_path() base on the VM
       PPA_FETCH_LOG: /data/logs/cron_fetch.log         # shared with the fetch service
       TZ: Asia/Jakarta                                 # match the fetch service's tz
+      PPA_APP_PASSWORD: webadmin123                    # login password — CHANGE for production
     volumes:
       - ./credentials:/app/credentials:ro
       - ./Setup/.env:/app/Setup/.env:ro

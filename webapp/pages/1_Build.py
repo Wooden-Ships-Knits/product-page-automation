@@ -5,10 +5,12 @@ import time
 
 import streamlit as st
 from ui import apply_theme
+from auth import require_auth
 from services import run_lock
 from services.runner import BuildRun, extract_links
 
 apply_theme("Build · PPA", icon="🧵")
+require_auth()
 
 PRODUCTION_TYPES = ["unfix", "fixed", "sample", "sale_stock", "o4"]
 

@@ -3,9 +3,11 @@ import bootstrap  # noqa: F401  — first: sets sys.path + chdir
 
 import streamlit as st
 from ui import apply_theme
+from auth import require_auth
 from services import run_lock, fetch
 
 apply_theme("Fetch Monitor · PPA", icon="🧵")
+require_auth()
 
 st.title("Hourly fetch monitor")
 st.caption("fetch_id.fetch() + fetch_image.list_shop_files() — refreshes the PP SY LIST & Links storage snapshots.")

@@ -14,8 +14,10 @@ from pathlib import Path
 
 import streamlit as st
 from ui import apply_theme
+from auth import require_auth
 
 apply_theme("PPA Console", icon="🧵")
+require_auth()
 
 st.title("🧵 PPA Console")
 st.caption("Product Page Automation — trigger builds, watch them run, monitor the hourly fetch.")
