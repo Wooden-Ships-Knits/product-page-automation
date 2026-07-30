@@ -19,6 +19,7 @@ services:
     environment:
       IM_COLLECTION_BASE: /data/im_cache/Collection   # get_im_path() base on the VM
       PPA_FETCH_LOG: /data/logs/cron_fetch.log         # shared with the fetch service
+      TZ: Asia/Jakarta                                 # match the fetch service's tz
     volumes:
       - ./credentials:/app/credentials:ro
       - ./Setup/.env:/app/Setup/.env:ro
@@ -35,17 +36,14 @@ services:
   fetch:
     build: .
     image: ppa-app
-    # Hourly loop. (For exact on-the-hour scheduling, swap for supercronic or a
-    # host cron calling `docker compose run --rm fetch python cron_fetch.py`.)
-    command: >
-      sh -c "mkdir -p /data/logs &&
-      while true; do
-        echo \"===== fetch $$(date -u +%Y-%m-%dT%H:%M:%SZ) =====\" >> $$PPA_FETCH_LOG;
-        python cron_fetch.py >> $$PPA_FETCH_LOG 2>&1;
-        sleep 3600;
-      done"
+    # Hourly loop, restricted to the local-time window below (see deploy/fetch_loop.sh).
+    # For exact on-the-hour scheduling, swap for supercronic with `0 8-20 * * *`.
+    command: ["sh", "/app/deploy/fetch_loop.sh"]
     environment:
       PPA_FETCH_LOG: /data/logs/cron_fetch.log
+      TZ: Asia/Jakarta         # <-- SET TO YOUR TIMEZONE; the window below is in this tz
+      FETCH_START_HOUR: "8"    # first hourly run
+      FETCH_END_HOUR: "20"     # last hourly run (inclusive; use 19 to stop before 8pm)
     volumes:
       - ./credentials:/app/credentials:ro
       - ./Setup/.env:/app/Setup/.env:ro
