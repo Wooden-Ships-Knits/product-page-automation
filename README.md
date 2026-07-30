@@ -21,8 +21,9 @@ pip install -r Lrequirements.txt
 You also need:
 
 - `Setup/.env` with at least: `CLIENT_ID`, `CLIENT_SECRET` (Shopify), `PPA_SHEET_ID`, `SKU_UPC_ID`, `MASTER_DATA_ID`, `RETURN_ID`, and the Shopify location IDs `NE_First_Choice_ID`, `NE_Sample_ID`, `Bali_Stock_ID`, `Bali_To_Produce_ID`.
+- **Optional:** `IM_COLLECTION_BASE` — base directory for the IM Master workbooks. Defaults to the Mac's Google Drive mount (`…/PTIF SERVER/Collection`), so **leave it unset on the Mac**. On a headless host (Debian VM / Docker) where Drive isn't mounted, set it to a local cache dir (e.g. `/var/ppa/im_cache/Collection`) and use [drive_sync.py](drive_sync.py) to download the workbook there. See §11a and [docs/webapp-frontend-plan.md](docs/webapp-frontend-plan.md).
 - `credentials/dialy-report-automation-e20c53e67542.json` — Google service-account key (already gitignored). Scripts load this via a **relative path** (`credentials/...`), so they must be run from the project root.
-- The current season's IM Master workbook at `…/PTIF SERVER/Collection/<season>/IM/<season_code> IM MASTER.xlsx` (e.g. `…/Collection/26 Spring/IM/S26 IM MASTER.xlsx`). The path is hardcoded in `ProductInfo.__init__` (`self.IM_path`).
+- The current season's IM Master workbook at `<IM_COLLECTION_BASE>/<season>/IM/<season_code> IM MASTER.xlsx` (e.g. `…/Collection/26 Fall/IM/F26 IM MASTER.xlsx`). The path is built by `ProductInfo.get_im_path()` (derived from the `FROM IM | CODE` value), with the base dir from `IM_COLLECTION_BASE` (default = the Mac Drive mount).
 
 `.env`, `credentials/`, and `*.xlsx` are all gitignored.
 
@@ -395,35 +396,29 @@ The whole loop is wrapped in `try/except: traceback.print_exc()` so one bad row 
 
 The project currently assumes it runs **on a Mac with Google Drive for Desktop mounted**. Two host-specific assumptions must be removed before it can run on any cloud VM/container (Azure, GCP, AWS — all the same here):
 
-### 11a. The IM Master workbook is read from a local filesystem path
+### 11a. The IM Master workbook is read from a local filesystem path — SOLVED
 
-`ProductInfo.__init__` ([fetch_to_product_page.py:29](fetch_to_product_page.py#L29)) hardcodes:
+On the Mac, `ProductInfo.get_im_path()` returns a path under the **Google Drive for Desktop mount**. No headless host (Debian VM / Docker) has that mount, so the path would `FileNotFoundError` off-machine.
 
-```python
-self.IM_path = "/Users/woodenship/Library/CloudStorage/GoogleDrive-.../Shared drives/PTIF SERVER/Collection/{season}/IM/{code} IM MASTER.xlsx"
-```
+**Implemented solution: download-to-disk via the Drive API, keeping the read code path-based.** Two pieces:
 
-This only resolves because **Drive for Desktop mounts Drive as a local folder**. No cloud host has that mount — the path throws `FileNotFoundError` off-machine.
+1. **`IM_COLLECTION_BASE` env var** ([fetch_to_product_page.py](fetch_to_product_page.py) `get_im_path()`) — the base dir for the workbooks. Defaults to the Mac Drive mount (so the Mac is unchanged); on the VM set it to a local cache dir (e.g. `/var/ppa/im_cache/Collection`). The path *shape* stays identical, so `header_finder()` / `get_weight()` are untouched.
+2. **[drive_sync.py](drive_sync.py)** — a standalone helper that, using the existing service account, walks the Shared Drive folder chain `PTIF SERVER / Collection / <season> / IM /` and downloads the correct workbook to the exact local path `get_im_path()` expects:
 
-**Fix: read the workbook via the Google Drive API instead of the filesystem.** The service account already carries Drive scope ([Setup/setup.py:18-26](Setup/setup.py#L18-L26)), so the same credential can download the `.xlsx` by **file ID** into memory and hand the bytes to pandas:
+   ```bash
+   python drive_sync.py --check                          # verify access + list IM files
+   python drive_sync.py --ensure "<get_im_path() value>" # download that workbook to disk
+   ```
 
-```python
-from googleapiclient.discovery import build
-from io import BytesIO
-import pandas as pd
+   In code: `drive_sync.ensure_local(P.get_im_path())` right before the build reads the IM file.
 
-drive = build("drive", "v3", credentials=creds)
-buf = BytesIO(drive.files().get_media(fileId=IM_MASTER_FILE_ID,
-                                       supportsAllDrives=True).execute())
-df = pd.read_excel(buf, header=IM_header)
-```
+Why folder-walk, not file-ID or bare name: the Shared Drive holds **hundreds** of similarly-named IM Master copies (old seasons, `Copy of …`, `@Syno…` junk). The consistent anchor is the **season's `IM/` folder**, so `drive_sync` navigates the folder tree and takes the workbook inside it — exact name first, else the single workbook present, else a clear error (never a silent wrong guess).
 
-Store the file ID in `.env` alongside the other IDs. Two gotchas, both because the file lives in a **Shared Drive**:
+Two Shared-Drive gotchas (handled by `drive_sync`):
+- The service-account email (`dialy-report-bot@dialy-report-automation.iam.gserviceaccount.com`) must be a **member of the `PTIF SERVER` Shared Drive** (Viewer). Done.
+- Every Drive call needs **`supportsAllDrives=True`** / **`includeItemsFromAllDrives=True`** or Shared-Drive files come back empty.
 
-- The service-account email must be added as a **member of the Shared Drive** (Viewer is enough) — sharing the single file isn't always sufficient.
-- Every Drive call needs **`supportsAllDrives=True`** (and `includeItemsFromAllDrives=True` when listing), or the file appears not to exist.
-
-> `rclone mount` (FUSE-mounting Drive on the VM) would keep the path-based code working, but it's fragile for a server (mount drops, token refresh) — the API route is preferred.
+> Not solved by this: **staleness** — `ensure_local()` only downloads when the local file is missing, so a changed workbook in Drive won't refresh until forced. A modifiedTime check / `--force` policy is a TODO. And `rclone mount` was rejected as too fragile for an unattended server.
 
 ### 11b. Credentials load from a relative file path
 

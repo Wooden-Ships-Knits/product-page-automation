@@ -1,0 +1,15 @@
+# Base theme (applies when launched from the webapp/ dir). The app ALSO injects
+# matching CSS in ui.py, which themes it regardless of launch location.
+[theme]
+base = "dark"
+primaryColor = "#e07a5f"
+backgroundColor = "#14141f"
+secondaryBackgroundColor = "#20202e"
+textColor = "#f2f2f5"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+headless = true

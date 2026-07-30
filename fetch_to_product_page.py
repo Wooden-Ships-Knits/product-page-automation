@@ -170,7 +170,15 @@ class ProductInfo:
 
         season_year = f"{season_number} {season_name}"    # "26 Fall"
         season_code = f"{season_name[0]}{season_number}"  # "F26"
-        return f"/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com/Shared drives/PTIF SERVER/Collection/{season_year}/IM/{season_code} IM MASTER.xlsx"
+        # Base dir adapts per host, path shape stays identical:
+        #   Mac  -> default below (the Google Drive mount) = unchanged behaviour
+        #   VM   -> set env IM_COLLECTION_BASE to a local cache dir; drive_sync
+        #           downloads the workbook there before this file is read.
+        base = os.getenv(
+            "IM_COLLECTION_BASE",
+            "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com/Shared drives/PTIF SERVER/Collection",
+        )
+        return f"{base}/{season_year}/IM/{season_code} IM MASTER.xlsx"
 
     def header_finder(self) -> int:
         """Read the IM Master workbook and find the header row by locating the

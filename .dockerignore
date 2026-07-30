@@ -1,0 +1,22 @@
+# Keep the build context small and never bake secrets/data into the image.
+venv/
+.git/
+.gitignore
+**/__pycache__/
+*.pyc
+*.pyo
+
+# secrets & data — provided at runtime as mounted volumes, NOT in the image
+credentials/
+Setup/.env
+Output/
+*.log
+.run.lock
+webapp/.run.lock
+
+# large local workbooks — the IM file comes from Drive via drive_sync at runtime
+*.xlsx
+*.xls
+
+# local-only
+notes/

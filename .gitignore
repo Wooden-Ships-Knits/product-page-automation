@@ -16,3 +16,7 @@ list_locations.py
 Lrequirements.txt
 *.log
 *.sh
+
+venv/
+.claude/
+.vscode/

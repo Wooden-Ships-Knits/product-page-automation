@@ -1,0 +1,3 @@
+# Web app dependency — installed ON TOP of the project's core requirements.txt.
+# Keep numpy<2 (the core pins it; streamlit does not force an upgrade).
+streamlit==1.50.0
