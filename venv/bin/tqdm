@@ -1,8 +1,0 @@
-#!/bin/sh
-'''exec' "/Users/woodenship/Library/CloudStorage/GoogleDrive-web@pt-infashion.com (25-05-26 14.53)/Shared drives/WEB SERVER/LUTHFI/SAS_L/PPA/venv/bin/python" "$0" "$@"
-' '''
-import sys
-from tqdm.cli import main
-if __name__ == '__main__':
-    sys.argv[0] = sys.argv[0].removesuffix('.exe')
-    sys.exit(main())
