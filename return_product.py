@@ -17,6 +17,10 @@ sheet = setup.sheet
 # worksheet_name = f'Jun 5, 2026'
 worksheet_name = date.today().strftime("%b %d, %Y")
 
+# Season of the styles being processed (selects the Master Data tab / season_code).
+# Defaults to 26 Fall; the web interface passes the chosen season via PPA_SEASON.
+SEASON = os.getenv("PPA_SEASON", "26 Fall")
+
 values = setup._get_sheet_values(
         sheet_id=os.getenv("RETURN_ID"),
     worksheet_name = worksheet_name,
@@ -43,7 +47,6 @@ try:
         STYLE = _first(row['Style']).strip()
         COLORS = [_first(row['Color']).strip()]
         print(f'processing {STYLE} - {COLORS[0]}')
-        SEASON = "26 Spring"
         added_to_fp = str(_first(row["Added to full price"])).strip().lower()
         added_to_sale = str(_first(row["Added to sale"])).strip().lower()
 

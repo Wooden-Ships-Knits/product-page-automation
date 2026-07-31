@@ -365,15 +365,17 @@ Row→sheet mapping: `iterrows()` yields the DataFrame index `idx`; the sheet ro
 
 The whole loop is wrapped in `try/except: traceback.print_exc()` so one bad row doesn't kill the run — but errors are swallowed; check console output.
 
-> ⚠️ **`return_product.py`'s create branch is broken.** It calls `create_pp.CreatePP(STYLE, COLORS, SEASON, SALE)` — missing the required `DESCRIPTION` positional arg the constructor now expects. The first create will raise `TypeError: __init__() missing 1 required positional argument: 'DESCRIPTION'`, swallowed by the outer try/except. The **update** branch is correct (it passes `DESCRIPTION`). Fix: pass `DESCRIPTION` into the `CreatePP(...)` call, mirroring `main.py`.
+> **Create branch** passes `DESCRIPTION` into `CreatePP(STYLE, COLORS, SEASON, SALE, DESCRIPTION)`, mirroring `main.py`. (Was previously missing it; fixed.)
 >
-> ⚠️ `worksheet_name` is currently **hardcoded** (`'Jun 5, 2026'`) with the `date.today()` line commented out. Re-enable the dynamic date for scheduled runs.
+> **`worksheet_name`** uses `date.today().strftime("%b %d, %Y")` — today's worksheet. (The hardcoded date is commented out.)
+>
+> **`SEASON`** is read from the `PPA_SEASON` env var (default `26 Fall`), so the webapp's **Return Products** page can set it per run instead of it being hardcoded. Bump the default in `return_product.py` when the season changes.
 
 ---
 
 ## 10. Known caveats
 
-- **`return_product.py` create branch is broken** (missing `DESCRIPTION` — see §9). Update branch is fine.
+- **`return_product.py`** create + update branches both pass `DESCRIPTION`; worksheet is `date.today()`; `SEASON` comes from `PPA_SEASON` (webapp Return Products page sets it). Previously-noted create-branch/worksheet bugs are fixed.
 - **Hardcoded write columns.** `main.py` / `return_product.py` write `PP SY LIST` rows starting at column **A**; `return_product.py` writes the Shopify link to column **R** of the source row. If columns shift, change the literal. The PPA sheet ID is also hardcoded as a literal in both writeback blocks (not read from `.env`).
 - **Multi-color stock lookups are first-color-only.** `get_NE_qty` / `get_BALI_qty` / `get_sample_qty` filter on `self.color = colors[0]`. Variants for additional colors reuse the first color's keep/qty. Safe for placeholder types; for `fixed`/`sale_stock`, prefer one color per call.
 - **`CreatePP.create_*` returns `(None, None)` on any failure** (no stock, GraphQL error, exception). Callers must check `if link is not None:`. `UpdatePP.update_*` returns a built `link` even after a swallowed exception or no-stock skip — a non-None update return does **not** guarantee success; check console.
