@@ -46,6 +46,25 @@ def _presync_im(season: str, log) -> None:
         log(f"[presync] skipped: {e}\n")
 
 
+def _refresh_shopify_token(log) -> None:
+    """Fetch a fresh Shopify token and update the cached header dicts IN PLACE.
+
+    The token expires in ~24h and is cached at import (setup.HEADERS / set_sy.headers_).
+    In the long-running web container that cached token goes stale, so refresh it
+    before each build. create_pp/update_pp bind `headers = setup.HEADERS` by
+    reference, so mutating the dict (not reassigning) updates them too.
+    """
+    try:
+        import Setup.set_sy as set_sy
+        import Setup.setup as setup_mod
+        fresh = set_sy.get_token()
+        setup_mod.HEADERS["X-Shopify-Access-Token"] = fresh
+        set_sy.headers_["X-Shopify-Access-Token"] = fresh
+        log("[auth] refreshed Shopify token\n")
+    except Exception as e:
+        log(f"[auth] token refresh failed: {e}\n")
+
+
 class _QueueWriter(io.TextIOBase):
     def __init__(self, q: "queue.Queue[str]"):
         self.q = q
@@ -81,6 +100,7 @@ class BuildRun:
             _presync_im(self.season, self.q.put)
             import main
             main.SEASON = self.season          # drive the season without touching the file
+            _refresh_shopify_token(self.q.put) # avoid the stale ~24h token in the long-running container
             main.production(self.data)
         except Exception:
             self.error = traceback.format_exc()
