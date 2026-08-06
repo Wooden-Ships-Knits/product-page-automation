@@ -79,11 +79,14 @@ class _QueueWriter(io.TextIOBase):
 
 
 class BuildRun:
-    """Runs production(data) for a season in a background thread with live output."""
+    """Runs production() for MANY products in a background thread with live output.
 
-    def __init__(self, data, season: str):
-        self.data = data
-        self.season = season
+    `rows` is a list of dicts, one per product:
+        {"season": "26 Fall", "Styles": "...", "Colors": ["...", ...], "Production": "unfix"}
+    """
+
+    def __init__(self, rows):
+        self.rows = rows
         self.q: "queue.Queue[str]" = queue.Queue()
         self.thread = None
         self.error = None
@@ -97,11 +100,21 @@ class BuildRun:
         old_out, old_err = sys.stdout, sys.stderr
         sys.stdout = sys.stderr = writer
         try:
-            _presync_im(self.season, self.q.put)
             import main
-            main.SEASON = self.season          # drive the season without touching the file
-            _refresh_shopify_token(self.q.put) # avoid the stale ~24h token in the long-running container
-            main.production(self.data)
+            _refresh_shopify_token(self.q.put)   # avoid the stale ~24h token in the long-running container
+
+            # production() uses ONE module-level SEASON, so group products by season
+            # and run each group with the right SEASON (and its IM file presynced).
+            groups = {}
+            for r in self.rows:
+                groups.setdefault(r["season"], []).append(
+                    {"Styles": r["Styles"], "Colors": r["Colors"], "Production": r["Production"]}
+                )
+            for season, data in groups.items():
+                self.q.put(f"\n========== SEASON {season}: {len(data)} product(s) ==========\n")
+                _presync_im(season, self.q.put)
+                main.SEASON = season
+                main.production(data)
         except Exception:
             self.error = traceback.format_exc()
             self.q.put("\n[ERROR]\n" + self.error)
