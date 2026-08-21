@@ -65,6 +65,23 @@ def _refresh_shopify_token(log) -> None:
         log(f"[auth] token refresh failed: {e}\n")
 
 
+def _clear_sheet_cache(log) -> None:
+    """Clear setup's in-process sheet/excel caches so each build reads CURRENT
+    data. Those caches (_VALUES_CACHE / _WORKSHEET_CACHE / _EXCEL_CACHE) persist
+    for the process lifetime — fine for main.py's short runs, but in the
+    long-running web container they'd serve stale sheet data until a restart.
+    """
+    try:
+        import Setup.setup as setup_mod
+        for name in ("_VALUES_CACHE", "_WORKSHEET_CACHE", "_EXCEL_CACHE"):
+            c = getattr(setup_mod, name, None)
+            if isinstance(c, dict):
+                c.clear()
+        log("[cache] cleared sheet cache — reading fresh data\n")
+    except Exception as e:
+        log(f"[cache] clear failed: {e}\n")
+
+
 class _QueueWriter(io.TextIOBase):
     def __init__(self, q: "queue.Queue[str]"):
         self.q = q
@@ -102,6 +119,7 @@ class BuildRun:
         try:
             import main
             _refresh_shopify_token(self.q.put)   # avoid the stale ~24h token in the long-running container
+            _clear_sheet_cache(self.q.put)       # read current sheet data, not a startup snapshot
 
             # production() uses ONE module-level SEASON, so group products by season
             # and run each group with the right SEASON (and its IM file presynced).
