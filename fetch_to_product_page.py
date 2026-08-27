@@ -638,6 +638,19 @@ class ProductInfo:
 
             if df_ssi["WEB | PRINTED | (Y/N)"].iloc[0] == "Y":
                 tags += "hand printed, printed, "
+
+
+            def _armhole(df, level):            # level = "UPDATED" or "ORIGINAL"
+                col = next(c for c in df.columns
+                        if level in str(c).upper() and "ARMHOLE" in str(c).upper())
+                v = df[col].iloc[0]
+                return "" if pd.isna(v) else str(v).strip()
+
+            updated  = _armhole(df_ssi, "UPDATED")
+            original = _armhole(df_ssi, "ORIGINAL")
+            tag = (updated if updated else original).lower()
+            tags += f"{tag}, "
+            
         else:
             print("no matching style found in master data, skipping XL/printed tag adjustments")
 

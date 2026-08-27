@@ -22,4 +22,5 @@ Lrequirements.txt
 venv/
 .claude/
 .vscode/
+*.ipynb
 
