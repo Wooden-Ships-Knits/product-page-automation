@@ -667,7 +667,7 @@ class ProductInfo:
 
         tags +=f"{generic_color}, "
 
-        tags += f"Additional {datetime.now().strftime('%b %-d %Y')}, "
+        # tags += f"Additional {datetime.now().strftime('%b %-d %Y')}, "
 
         return tags
 
