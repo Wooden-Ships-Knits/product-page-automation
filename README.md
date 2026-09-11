@@ -420,7 +420,7 @@ Two Shared-Drive gotchas (handled by `drive_sync`):
 - The service-account email (`dialy-report-bot@dialy-report-automation.iam.gserviceaccount.com`) must be a **member of the `PTIF SERVER` Shared Drive** (Viewer). Done.
 - Every Drive call needs **`supportsAllDrives=True`** / **`includeItemsFromAllDrives=True`** or Shared-Drive files come back empty.
 
-> Not solved by this: **staleness** — `ensure_local()` only downloads when the local file is missing, so a changed workbook in Drive won't refresh until forced. A modifiedTime check / `--force` policy is a TODO. And `rclone mount` was rejected as too fragile for an unattended server.
+> **Staleness is handled:** `ensure_local()` compares Drive's `modifiedTime` against the local file's mtime and re-downloads when the Drive copy is newer, so a long-running container never builds against a stale workbook. Pass `force=True` to refresh unconditionally. (`rclone mount` was rejected as too fragile for an unattended server.)
 
 ### 11b. Credentials load from a relative file path
 

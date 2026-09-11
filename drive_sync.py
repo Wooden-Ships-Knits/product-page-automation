@@ -35,6 +35,7 @@ import glob
 import io
 import json
 import os
+from datetime import datetime
 from pathlib import Path
 
 from google.oauth2.service_account import Credentials
@@ -204,6 +205,19 @@ def _download(svc, file_id: str, dest: Path) -> None:
     buf.close()
 
 
+def _rfc3339_to_epoch(value: str) -> float:
+    """Drive's modifiedTime ('2026-09-11T08:06:00.974Z') -> epoch seconds.
+    Handles the trailing 'Z' and 3-digit fractions that datetime.fromisoformat
+    rejects on Python 3.9."""
+    s = str(value).strip().replace("Z", "+00:00")
+    if "." in s:
+        base, rest = s.split(".", 1)
+        idx = next((i for i, ch in enumerate(rest) if ch in "+-"), len(rest))
+        frac, tz = rest[:idx], rest[idx:] or "+00:00"
+        s = f"{base}.{(frac + '000000')[:6]}{tz}"
+    return datetime.fromisoformat(s).timestamp()
+
+
 def ensure_local(local_path: str, force: bool = False) -> str:
     """Ensure the IM workbook for `local_path` exists on disk; download if missing.
 
@@ -213,12 +227,21 @@ def ensure_local(local_path: str, force: bool = False) -> str:
     get_im_path() expects, so the existing PPA code reads it unchanged.
     """
     dest = Path(local_path)
-    if dest.exists() and not force:
-        return str(dest)
-
     rel_parts = _rel_parts_from_local(local_path)
     svc = _drive()
     record = resolve_by_path(svc, rel_parts)
+
+    # Re-download when Drive's copy is newer, so a long-running container never
+    # builds against a stale workbook (local mtime == when we last downloaded).
+    if dest.exists() and not force:
+        try:
+            remote = _rfc3339_to_epoch(record.get("modifiedTime", ""))
+            if dest.stat().st_mtime >= remote:
+                return str(dest)                 # local copy is current
+            print(f"[drive_sync] Drive copy is newer - refreshing {dest.name}")
+        except Exception as e:                   # can't compare -> be safe, refresh
+            print(f"[drive_sync] mtime check failed ({e}); re-downloading")
+
     _download(svc, record["id"], dest)
     print(f"Downloaded {'/'.join(rel_parts)} (id={record['id']}) -> {dest}")
     return str(dest)
