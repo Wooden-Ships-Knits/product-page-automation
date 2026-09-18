@@ -37,11 +37,6 @@ try:
     def _first(x):
         return x.iloc[0] if hasattr(x, 'iloc') else x
 
-    styles = []
-    colors = []
-    product_ids = []
-    FP_DCs = []
-
     for idx, row in dfs.iterrows():
         sheet_row = idx + 7 
         STYLE = _first(row['Style']).strip()
@@ -90,10 +85,7 @@ try:
                     valueInputOption="RAW",
                     body={"values": [[link]]}
                 ).execute()
-                styles.append(STYLE)
-                colors.append(COLORS[0])
-                product_ids.append(product_id)
-                FP_DCs.append(FP_DC)
+                # PP SY LIST row for the new product is added by webhook_receiver.py
         else:
             U = update_pp.UpdatePP(STYLE,COLORS,SEASON,PRODUCT_ID,SALE,DESCRIPTION)
 
@@ -117,29 +109,6 @@ try:
 
             else:
                 print('this is an active product, retracting....')
-
-    if styles:
-        values = setup._get_sheet_values(
-            sheet_id="1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk",
-            worksheet_name='PP SY LIST',
-            use_all_values=True
-        )
-        df = pd.DataFrame(values[1:], columns=values[0])
-        df = df[df['Style'].fillna('').astype(str).str.strip() == ""]
-        if df.empty:
-            print("PP SY LIST has no empty Style row to append to — aborting write")
-        else:
-            start_idx = df.index[0]
-            new_rows = [
-                [s, c, pid, "DRAFT", fp]
-                for s, c, pid, fp in zip(styles, colors, product_ids, FP_DCs)
-            ]
-            sheet.values().update(
-                spreadsheetId="1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk",
-                range=f"'PP SY LIST'!A{start_idx + 2}",
-                valueInputOption="RAW",
-                body={"values": new_rows}
-            ).execute()
 
 except:
     traceback.print_exc()

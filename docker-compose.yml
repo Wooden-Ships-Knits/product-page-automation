@@ -54,6 +54,29 @@ services:
       - ppa_data:/data
     restart: unless-stopped
 
+  webhook:
+    build: .
+    image: ppa-app
+    # Shopify products/create|update|delete -> per-row PP SY LIST sync (webhook_receiver.py).
+    # Loopback only; host nginx proxies /shopify/webhook to it (see deploy/ppa.nginx.conf).
+    command: ["python", "webhook_receiver.py"]
+    ports:
+      - "127.0.0.1:8502:8502"
+    environment:
+      TZ: Asia/Jakarta
+      WEBHOOK_PORT: "8502"
+      WEBHOOK_DRY_RUN: "0"     # "1" = log planned sheet changes without writing
+    volumes:
+      - ./credentials:/app/credentials:ro
+      - ./Setup/.env:/app/Setup/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8502/healthz').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
 # HTTPS/reverse-proxy is handled by the VM's HOST nginx (already installed),
 # proxying to 127.0.0.1:8501 — see deploy/ppa.nginx.conf. No nginx/certbot here.
 

@@ -19,12 +19,6 @@ def production(data):
     if out_file.exists():
         out_file.unlink()          # clear stale link from a previous run
 
-
-    styles = []
-    colors = []
-    product_ids = []
-    FP_DCs = []
-
     for d in data:
         STYLE = d['Styles'].upper()
         COLORS = d['Colors']
@@ -60,12 +54,7 @@ def production(data):
                     link, product_id = C.create_o4()
                 elif production_type == 'sample':
                     link, product_id = C.create_sample()
-
-                if link is not None:
-                    styles.append(STYLE)
-                    colors.append(COLOR)
-                    FP_DCs.append(FP_DC)
-                    product_ids.append(product_id)
+                # PP SY LIST row for the new product is added by webhook_receiver.py
 
             elif create_new == False:
                 U = update_pp.UpdatePP(STYLE, COLORS, SEASON, product_id, SALE, description)
@@ -86,29 +75,6 @@ def production(data):
         print(link)
         if link:
             out_file.write_text(link, encoding="utf-8")   # persist for the launcher
-
-    if styles:
-        values = setup._get_sheet_values(
-            sheet_id="1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk",
-            worksheet_name='PP SY LIST',
-            use_all_values=True
-        )
-        df = pd.DataFrame(values[1:], columns=values[0])
-        df = df[df['Style'].fillna('').astype(str).str.strip() == ""]
-        if df.empty:
-            print("PP SY LIST has no empty Style row to append to — aborting write")
-        else:
-            start_idx = df.index[0]
-            new_rows = [
-                [style, color, pid, "DRAFT", fpdc]
-                for style, color, pid, fpdc in zip(styles, colors, product_ids, FP_DCs)
-            ]
-            sheet.values().update(
-                spreadsheetId="1CX6tjxos0N2p_YRmrgo6sA7KSPM5bZnBdyaQZuJWoCk",
-                range=f"'PP SY LIST'!A{start_idx + 2}",
-                valueInputOption="RAW",
-                body={"values": new_rows}
-            ).execute()
 
 if __name__ == "__main__":
     production(data)

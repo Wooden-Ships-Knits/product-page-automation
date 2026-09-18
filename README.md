@@ -312,7 +312,7 @@ python main.py
 4. On successful create (`link is not None`), accumulate `[STYLE, COLOR, product_id, "DRAFT", FP_DC]`.
 5. If `status != "DRAFT"`, print "not found or an active pp. skipping" and continue.
 
-After the loop, if any product was created, append the accumulated rows to the first empty `Style` row of `PP SY LIST` (column **A**). Updates do **not** append (the row is presumed already present).
+`main.py` does **not** write to `PP SY LIST`: the row for a newly created product is added by the Shopify webhook ([webhook_receiver.py](webhook_receiver.py), see "Real-time PP SY LIST sync" below).
 
 > The `fetch_id.fetch()` / `fetch_image.list_shop_files()` calls in `main.py`'s `__main__` are commented out on purpose — those two snapshots now run on their own hourly schedule (see "Scheduled fetch refresh" below), so `main.py` only does `production(data)`. Uncomment them only if you want a one-off manual refresh inside a `main.py` run.
 
@@ -346,16 +346,37 @@ launchctl load -w ~/Library/LaunchAgents/com.ppa.fetch.plist    # re-enable
 >
 > An inert hourly `cron` entry also exists (`crontab -l`) from an earlier attempt; it fails silently without Full Disk Access and can be ignored or removed with `crontab -r`.
 
+### Real-time PP SY LIST sync (Shopify webhooks)
+
+[webhook_receiver.py](webhook_receiver.py) keeps `PP SY LIST` up to date **per product** within seconds, instead of waiting for the hourly full snapshot. Shopify POSTs `products/create|update|delete` to `https://product-page-automation.pt-infashion.com/shopify/webhook` → host nginx → Docker `webhook` service (`127.0.0.1:8502`).
+
+- Verifies Shopify's HMAC with `CLIENT_SECRET`, drops duplicate deliveries, answers 200 immediately and queues the event.
+- Every 5 s a worker coalesces events per product and edits only those rows: update if changed, write below the last row if new, delete on `products/delete`. Extra rows with the same Product ID are removed. This is the **only** writer of new-product rows — `main.py` / `return_product.py` no longer write to `PP SY LIST`.
+- Row rules (Style from title minus `*SALE*` prefixes, FP/DC, boilerplate-stripped description) are a copy of `fetch_product_id_new.fetch()` — **if you change those rules there, change them in `build_row()` too.**
+- `WEBHOOK_DRY_RUN=1` logs planned changes without writing.
+
+Setup (once, on the VM):
+```bash
+# 1. add the `location = /shopify/webhook` block from deploy/ppa.nginx.conf to the 443 server block, then
+sudo nginx -t && sudo systemctl reload nginx
+# 2. start the service
+docker compose up -d --build webhook
+# 3. subscribe the webhooks (list / create / delete)
+docker compose run --rm webhook python register_webhooks.py create
+docker compose logs -f webhook
+```
+
+The hourly `fetch` service still runs as a safety net for missed webhooks (Shopify gives up after repeated failures). Once the webhook has proven reliable, it can be reduced to once a day. `Links storage` (images) is not covered — Shopify has no reliable webhook for Files.
+
 ### Bulk, sheet-driven (`return_product.py`)
 
 Reads the Master Grid of Return's daily worksheet, drops rows where any `ZZ`-named column equals `"ZZ"`, dedupes by `(Style, Color)`, and iterates each remaining row:
 
 - Reads `Added to full price` / `Added to sale`. The one marked `x` decides FP vs DC and `SALE`. Both `x` or neither → log and `continue`.
 - Calls `PUD.decide` (unpacks 4: `create_new, PRODUCT_ID, status, DESCRIPTION`).
-- If `create_new == True`: instantiates `CreatePP` and calls `create_fixed()` (FP) or `create_sale_stock()` (DC). On success, writes the returned link to column **R** of the source row and accumulates a `PP SY LIST` writeback.
+- If `create_new == True`: instantiates `CreatePP` and calls `create_fixed()` (FP) or `create_sale_stock()` (DC). On success, writes the returned link to column **R** of the source row. The `PP SY LIST` row is added by the webhook ([webhook_receiver.py](webhook_receiver.py)).
 - If `create_new == False` and the product is `DRAFT`: `update_fixed()` (FP) or `update_sale_stock()` (DC), then writes the link back to column **R**.
 - Active products are logged ("this is an active product, retracting…") and skipped.
-- After the loop, appends accumulated new rows to `PP SY LIST` (column **A**).
 
 ```bash
 python return_product.py
