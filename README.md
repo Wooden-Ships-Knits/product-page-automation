@@ -366,7 +366,9 @@ docker compose run --rm webhook python register_webhooks.py create
 docker compose logs -f webhook
 ```
 
-The Docker `fetch` service now runs the full snapshot (`cron_fetch.py`) **once a night at 00:00 Asia/Makassar** ([deploy/fetch_nightly.sh](deploy/fetch_nightly.sh), `FETCH_AT` / `TZ` in docker-compose) as a safety net for missed webhooks. It does not run on container start; for a manual run: `docker compose exec fetch python cron_fetch.py`. `Links storage` (images) is not covered by the webhook — Shopify has no reliable webhook for Files — so it is also refreshed only nightly.
+The Docker `fetch` service now runs the full snapshot (`cron_fetch.py`) **once a night at 00:00 Asia/Makassar** ([deploy/fetch_nightly.sh](deploy/fetch_nightly.sh), `FETCH_AT` / `TZ` in docker-compose) as a safety net for missed webhooks. It does not run on container start; for a manual run: `docker compose exec fetch python cron_fetch.py`. 
+
+**`Links storage` (images):** Shopify has no webhook for Files, so [files_poller.py](files_poller.py) (a background thread in the `webhook` service) asks Shopify every 3 min (`FILES_POLL_SECONDS`) only for files whose `updated_at` changed since the last check, and upserts those rows by file ID (same rules as `list_shop_files()`: `wooden-ships-knits*`, MediaImage, `.webp`). New/changed images appear within ~3 min; deleted files are removed by the nightly full rewrite. **If you change the filter rules in `list_shop_files()`, change them in `files_poller.py` too.** One-off check: `docker compose exec webhook python files_poller.py --since-hours 24 --dry-run`.
 
 ### Bulk, sheet-driven (`return_product.py`)
 

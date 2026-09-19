@@ -66,6 +66,7 @@ services:
       TZ: Asia/Jakarta
       WEBHOOK_PORT: "8502"
       WEBHOOK_DRY_RUN: "0"     # "1" = log planned sheet changes without writing
+      FILES_POLL_SECONDS: "180"   # Shopify Files -> Links storage check interval (files_poller.py); 0 = off
     volumes:
       - ./credentials:/app/credentials:ro
       - ./Setup/.env:/app/Setup/.env:ro

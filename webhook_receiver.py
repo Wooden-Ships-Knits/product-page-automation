@@ -353,6 +353,9 @@ def main():
     if not CLIENT_SECRET or not SHEET_ID:
         raise SystemExit("CLIENT_SECRET and PPA_SHEET_ID must be set (Setup/.env)")
     threading.Thread(target=worker, daemon=True).start()
+    # Shopify has no Files webhook — poll for changed files -> Links storage (files_poller.py)
+    import files_poller
+    threading.Thread(target=files_poller.run, daemon=True).start()
     log(f"webhook receiver on :{PORT}{PATH}{' (DRY RUN)' if DRY_RUN else ''}")
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
 
