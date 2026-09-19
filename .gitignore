@@ -18,6 +18,7 @@ Lrequirements.txt
 *.sh
 # exception: the Docker fetch service needs this script in the repo
 !deploy/fetch_loop.sh
+!deploy/fetch_nightly.sh
 
 venv/
 .claude/

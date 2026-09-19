@@ -40,14 +40,14 @@ services:
   fetch:
     build: .
     image: ppa-app
-    # Hourly loop, restricted to the local-time window below (see deploy/fetch_loop.sh).
-    # For exact on-the-hour scheduling, swap for supercronic with `0 8-20 * * *`.
-    command: ["sh", "/app/deploy/fetch_loop.sh"]
+    # Once a night at FETCH_AT (see deploy/fetch_nightly.sh) — safety net only; the
+    # webhook service keeps PP SY LIST in sync in real time.
+    # Old hourly loop (08-20): command ["sh", "/app/deploy/fetch_loop.sh"] + FETCH_START_HOUR/FETCH_END_HOUR.
+    command: ["sh", "/app/deploy/fetch_nightly.sh"]
     environment:
       PPA_FETCH_LOG: /data/logs/cron_fetch.log
-      TZ: Asia/Jakarta         # <-- SET TO YOUR TIMEZONE; the window below is in this tz
-      FETCH_START_HOUR: "8"    # first hourly run
-      FETCH_END_HOUR: "20"     # last hourly run (inclusive; use 19 to stop before 8pm)
+      TZ: Asia/Makassar        # FETCH_AT is in this tz (WITA, UTC+8)
+      FETCH_AT: "00:00"
     volumes:
       - ./credentials:/app/credentials:ro
       - ./Setup/.env:/app/Setup/.env:ro

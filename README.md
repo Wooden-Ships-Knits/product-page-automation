@@ -366,7 +366,7 @@ docker compose run --rm webhook python register_webhooks.py create
 docker compose logs -f webhook
 ```
 
-The hourly `fetch` service still runs as a safety net for missed webhooks (Shopify gives up after repeated failures). Once the webhook has proven reliable, it can be reduced to once a day. `Links storage` (images) is not covered — Shopify has no reliable webhook for Files.
+The Docker `fetch` service now runs the full snapshot (`cron_fetch.py`) **once a night at 00:00 Asia/Makassar** ([deploy/fetch_nightly.sh](deploy/fetch_nightly.sh), `FETCH_AT` / `TZ` in docker-compose) as a safety net for missed webhooks. It does not run on container start; for a manual run: `docker compose exec fetch python cron_fetch.py`. `Links storage` (images) is not covered by the webhook — Shopify has no reliable webhook for Files — so it is also refreshed only nightly.
 
 ### Bulk, sheet-driven (`return_product.py`)
 
