@@ -9,6 +9,7 @@ from ui import apply_theme
 from auth import require_auth
 from services import run_lock
 from services.runner import BuildRun, extract_links
+from update_fields import FIELDS
 
 apply_theme("Build · PPA", icon="🧵")
 require_auth()
@@ -44,7 +45,36 @@ edited = st.data_editor(
     },
 )
 
-run_clicked = st.button("Run build", type="primary")
+# ---- fields to update (existing products only) -----------------------------
+FIELD_KEYS = list(FIELDS)
+for k in FIELD_KEYS:
+    st.session_state.setdefault(f"fld_{k}", True)
+st.session_state.setdefault("fld_all", True)
+
+
+def _toggle_all():
+    for k in FIELD_KEYS:
+        st.session_state[f"fld_{k}"] = st.session_state["fld_all"]
+
+
+def _sync_all():
+    st.session_state["fld_all"] = all(st.session_state[f"fld_{k}"] for k in FIELD_KEYS)
+
+
+btn_col, fields_col = st.columns([1, 7], vertical_alignment="top")
+with fields_col:
+    with st.container(border=True):
+        st.caption("**Fields to update** — existing product pages only. "
+                   "New product pages (and new sizes/colors) always get every field.")
+        st.checkbox("Select all", key="fld_all", on_change=_toggle_all)
+        grid = st.columns(5)
+        for i, k in enumerate(FIELD_KEYS):
+            label, help_text = FIELDS[k]
+            grid[i % 5].checkbox(label, key=f"fld_{k}", help=help_text, on_change=_sync_all)
+with btn_col:
+    run_clicked = st.button("Run build", type="primary")
+
+selected_fields = [k for k in FIELD_KEYS if st.session_state[f"fld_{k}"]]
 
 # ---- run -------------------------------------------------------------------
 if run_clicked:
@@ -69,6 +99,9 @@ if run_clicked:
     if not rows:
         st.error("Add at least one row with a Style and Colors.")
         st.stop()
+    if not selected_fields:
+        st.error("Tick at least one field to update (or Select all).")
+        st.stop()
 
     try:
         run_lock.acquire("build")
@@ -77,7 +110,8 @@ if run_clicked:
         st.stop()
 
     st.info(f"Running {len(rows)} product(s)…")
-    run = BuildRun(rows)
+    # all ticked -> None = exactly the old behaviour (update everything)
+    run = BuildRun(rows, update_fields=None if len(selected_fields) == len(FIELD_KEYS) else selected_fields)
     run.start()
 
     log_box = st.empty()

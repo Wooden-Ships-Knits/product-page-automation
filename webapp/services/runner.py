@@ -100,10 +100,13 @@ class BuildRun:
 
     `rows` is a list of dicts, one per product:
         {"season": "26 Fall", "Styles": "...", "Colors": ["...", ...], "Production": "unfix"}
+    `update_fields`: keys of update_fields.FIELDS to change on EXISTING products
+    (None = all). New products are always created with every field.
     """
 
-    def __init__(self, rows):
+    def __init__(self, rows, update_fields=None):
         self.rows = rows
+        self.update_fields = update_fields
         self.q: "queue.Queue[str]" = queue.Queue()
         self.thread = None
         self.error = None
@@ -116,10 +119,17 @@ class BuildRun:
         writer = _QueueWriter(self.q)
         old_out, old_err = sys.stdout, sys.stderr
         sys.stdout = sys.stderr = writer
+        update_pp = None
         try:
             import main
+            import update_pp
             _refresh_shopify_token(self.q.put)   # avoid the stale ~24h token in the long-running container
             _clear_sheet_cache(self.q.put)       # read current sheet data, not a startup snapshot
+
+            # Field selection for updates. Module-level setting is safe: run_lock allows one run at a time.
+            update_pp.UPDATE_FIELDS = None if self.update_fields is None else set(self.update_fields)
+            if self.update_fields is not None:
+                self.q.put(f"[fields] updates limited to: {', '.join(sorted(self.update_fields))}\n")
 
             # production() uses ONE module-level SEASON, so group products by season
             # and run each group with the right SEASON (and its IM file presynced).
@@ -137,6 +147,8 @@ class BuildRun:
             self.error = traceback.format_exc()
             self.q.put("\n[ERROR]\n" + self.error)
         finally:
+            if update_pp is not None:
+                update_pp.UPDATE_FIELDS = None   # next run (or main.py in this process) updates everything again
             sys.stdout, sys.stderr = old_out, old_err
 
     def drain(self) -> str:

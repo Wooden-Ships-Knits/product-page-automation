@@ -10,6 +10,14 @@ load_dotenv(Path(__file__).parent / "Setup/.env", override=True)
 headers = setup.HEADERS
 product_url = set_sy.product_url
 
+# Which fields to update (keys of update_fields.FIELDS). None = everything (the default,
+# e.g. main.py). The web Build page sets it for a run via webapp/services/runner.py.
+UPDATE_FIELDS = None
+
+
+def _wants(field):
+    return UPDATE_FIELDS is None or field in UPDATE_FIELDS
+
 SIZE_RANGE = {
     "X/S": "(2-4)",
     "S/M": "(6-8)",
@@ -102,7 +110,7 @@ class UpdatePP:
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             product_set_input, ordered_skus = self.product_post(self.COLORS, P, existing)
             product_id, variants = self._run_product_set(product_set_input, ordered_skus)
-            if product_id is not None:
+            if product_id is not None and _wants("quantity"):
                 self.set_inventory_metafield(variants, 'unfix')
         except Exception as e:
             traceback.print_exc()
@@ -131,7 +139,7 @@ class UpdatePP:
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             product_set_input, ordered_skus = self.product_post(self.COLORS, P, existing, keep=keep, qty=total_qty, skus=skus_chosen, barcodes=barcodes_chosen)
             product_id, variants = self._run_product_set(product_set_input, ordered_skus)
-            if product_id is not None:
+            if product_id is not None and _wants("quantity"):
                 self.set_inventory_metafield(variants, 'fixed', qty_ne=qty_ne, qty_ba=qty_ba)
 
         except Exception:
@@ -152,7 +160,7 @@ class UpdatePP:
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             product_set_input, ordered_skus = self.product_post(self.COLORS, P, existing, keep=keep, qty=qty_sample)
             product_id, variants = self._run_product_set(product_set_input, ordered_skus)
-            if product_id is not None:
+            if product_id is not None and _wants("quantity"):
                 self.set_inventory_metafield(variants, 'sample', qty_sample=qty_sample)
         except Exception as e:
             traceback.print_exc()
@@ -181,7 +189,7 @@ class UpdatePP:
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             product_set_input, ordered_skus = self.product_post(self.COLORS, P, existing, keep=keep, qty=total_qty, skus=skus_chosen, barcodes=barcodes_chosen)
             product_id, variants = self._run_product_set(product_set_input, ordered_skus)
-            if product_id is not None:
+            if product_id is not None and _wants("quantity"):
                 self.set_inventory_metafield(variants, 'sale_stock', qty_ne=qty_ne, qty_ba=qty_ba)
 
         except Exception:
@@ -196,7 +204,7 @@ class UpdatePP:
             existing = requests.get(self.url, headers=headers).json()["product"]["variants"]
             product_set_input, ordered_skus = self.product_post(self.COLORS, P, existing)
             product_id, variants = self._run_product_set(product_set_input, ordered_skus)
-            if product_id is not None:
+            if product_id is not None and _wants("quantity"):
                 self.set_inventory_metafield(variants, 'o4')
         except Exception as e:
             traceback.print_exc()
@@ -359,7 +367,49 @@ class UpdatePP:
         if files_unique:
             product_set_input["files"] = files_unique
 
+        self._apply_field_selection(product_set_input)
         return product_set_input, ordered_skus
+
+    def _apply_field_selection(self, product_set_input):
+        """Leave out what wasn't ticked on the Build page (UPDATE_FIELDS).
+
+        productSet keeps any product field that is omitted, and an existing variant
+        keeps any variant field that is omitted — so dropping a key = "don't touch it".
+        Variants that don't exist yet (no "id") are still sent complete so a new
+        size/color is created properly.
+        """
+        if UPDATE_FIELDS is None:
+            return
+        print(f"[fields] updating only: {', '.join(sorted(UPDATE_FIELDS)) or '(nothing)'}")
+
+        product_level = {
+            "handle": ["handle"],
+            "seo": ["seo"],
+            "description": ["descriptionHtml"],
+            "tags": ["tags", "templateSuffix"],
+            "size_chart": ["metafields"],
+            "images": ["files"],
+        }
+        for field, keys in product_level.items():
+            if not _wants(field):
+                for k in keys:
+                    product_set_input.pop(k, None)
+
+        variant_level = {
+            "price": ["price", "compareAtPrice"],
+            "sku_barcode": ["sku", "barcode"],
+        }
+        for v in product_set_input["variants"]:
+            if not _wants("images"):
+                v.pop("file", None)            # all variants: the product's files aren't being sent
+            if "id" not in v or "sku" not in v:
+                continue                       # new variant (keep complete) / preserved variant (id + options only)
+            for field, keys in variant_level.items():
+                if not _wants(field):
+                    for k in keys:
+                        v.pop(k, None)
+            if not _wants("weight"):
+                v.get("inventoryItem", {}).pop("measurement", None)
 
     def set_inventory_metafield(self, variants, production_type, qty_ne=None, qty_ba=None, qty_sample = None):
         # `variants` is the in-stock list from _run_product_set, aligned with
