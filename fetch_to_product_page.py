@@ -213,6 +213,27 @@ class ProductInfo:
         return values
 
     def get_weight(self):
+        """Weights per size from the IM Master. If they can't be read (style not in the
+        IM, missing column, …) this does NOT stop the build: it flags it in the log and
+        returns ([], []) — callers then fall back to weight 0 per size."""
+        try:
+            sizes, weights = self._get_weight_from_im()
+            if not weights:
+                raise ValueError("no matching IM rows")
+            return sizes, weights
+        except Exception as e:
+            print("!" * 60)
+            print(f"⚠️  WEIGHT NOT FOUND for {self.style} / {self.color} "
+                  f"({type(e).__name__}: {e})")
+            try:
+                print(f"    IM file: {self.get_im_path()}")
+            except Exception:
+                pass   # the warning itself must never fail
+            print("    → Fill in the weight MANUALLY in Shopify for this product.")
+            print("!" * 60)
+            return [], []
+
+    def _get_weight_from_im(self):
         df_im = self._IM_data()
         WS_TAG_COLOR = df_im.columns[df_im.columns.str.contains("WS TAG COLOR", case=False, na=False)][0]
         # df_im = df_im[(df_im["DESCRIPTION"].str.contains(self.style, case=False,na=False)) &

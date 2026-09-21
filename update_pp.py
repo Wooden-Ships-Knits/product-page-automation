@@ -226,6 +226,7 @@ class UpdatePP:
         page_title, meta_desc, url = P.get_SEL()
         metachart, sizes = P.get_metachart()
         sizes_im, weights_im = P.get_weight()
+        self._weight_failed = not weights_im   # get_weight() already flagged it in the log
         weight_by_size = dict(zip(sizes_im, weights_im))
         weights = [weight_by_size.get(s, 0) for s in sizes]
 
@@ -254,7 +255,7 @@ class UpdatePP:
         compare_at = self._money(full_price)
 
         tags = P.get_tags()
-        tags, template_suffix = tg.additional_tags(tags, sizes, qty)
+        tags, template_suffix = tg.additional_tags(tags, sizes, qty, full_price=(self.sale == False))
         if template_suffix == None:
             template_suffix = "default" if self.sale == False else "sale-item"
 
@@ -378,6 +379,13 @@ class UpdatePP:
         Variants that don't exist yet (no "id") are still sent complete so a new
         size/color is created properly.
         """
+        weight_failed = getattr(self, "_weight_failed", False)
+        if weight_failed:
+            # don't overwrite the weights already in Shopify with 0; new variants still get 0
+            print("    (existing variants keep their current weight in Shopify)")
+            for v in product_set_input["variants"]:
+                if "id" in v:
+                    v.get("inventoryItem", {}).pop("measurement", None)
         if UPDATE_FIELDS is None:
             return
         print(f"[fields] updating only: {', '.join(sorted(UPDATE_FIELDS)) or '(nothing)'}")

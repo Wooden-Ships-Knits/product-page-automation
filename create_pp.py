@@ -270,7 +270,7 @@ class CreatePP:
         print(f"metachart: {metachart}")
 
         tags = P.get_tags()
-        tags,template_suffix= tg.additional_tags(tags,sizes,qty)
+        tags,template_suffix= tg.additional_tags(tags,sizes,qty, full_price=(self.sale == False))
         if template_suffix ==None:
             if self.sale == False:
                 template_suffix ='default'

@@ -92,7 +92,10 @@ def generate_tags(STYLE, COLOR): #loook for better method
     
     return tags
 
-def additional_tags(tags,sizes,qty):
+def additional_tags(tags,sizes,qty, full_price=False):
+    # full price = production type fixed / unfix (SALE == False)
+    if full_price:
+        tags += "full priced, "
     if qty is not None:
         try:
             qty = int(str(qty).strip() or 0)
