@@ -257,7 +257,7 @@ class UpdatePP:
         tags = P.get_tags()
         tags, template_suffix = tg.additional_tags(tags, sizes, qty, full_price=(self.sale == False))
         if template_suffix == None:
-            template_suffix = "default" if self.sale == False else "sale-item"
+            template_suffix = "Default product" if self.sale == False else "sale-item"
 
         # existing variant ids, keyed by sku and by (size, color) option values
         sku_to_gid = {}

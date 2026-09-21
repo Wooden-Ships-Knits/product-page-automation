@@ -273,7 +273,7 @@ class CreatePP:
         tags,template_suffix= tg.additional_tags(tags,sizes,qty, full_price=(self.sale == False))
         if template_suffix ==None:
             if self.sale == False:
-                template_suffix ='default'
+                template_suffix ='Default product'
             elif self.sale == True:
                 template_suffix = 'sale-item'
         print(f"tags: {tags}")
