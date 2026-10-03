@@ -307,10 +307,10 @@ Resolves Shopify `productType` via a first-match cascade (substrings of the uppe
 
 | Substring | `productType` |
 |---|---|
-| `" V "` (space-bracketed) | `V-neck` |
+| `" V "` (space-bracketed) | `V-Neck` |
 | `CREW` | `Crewneck` |
 | `CARDI` | `Cardigan` |
-| `" T "` (space-bracketed) | `T-neck` |
+| `" T "` (space-bracketed) | `T-Neck` |
 | `" COLLAR "` (space-bracketed) | `Collar` |
 | (none of the above) | `""` (empty) |
 

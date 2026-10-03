@@ -625,13 +625,13 @@ class ProductInfo:
 
     def get_type(self): #look for better method
         if " V " in self.style:
-            type = "V-neck"
+            type = "V-Neck"
         elif "CREW" in self.style:
             type = "Crewneck"
         elif "CARDI" in self.style:
             type = "Cardigan"
         elif " T " in self.style:
-            type = "T-neck"
+            type = "T-Neck"
         elif " COLLAR " in self.style:
             type = "Collar"
         else: type = ""
