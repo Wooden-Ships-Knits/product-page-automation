@@ -37,6 +37,7 @@ import hmac
 import html
 import json
 import os
+import re
 import threading
 import time
 from collections import OrderedDict
@@ -103,6 +104,11 @@ def html_to_text(body_html):
     return html.unescape("".join(p.parts))
 
 
+# The team sometimes types ' - SALE' after the variant's color in Shopify; strip it so the
+# COLOR column stays just the color. Same rule in fetch_product_id_new.fetch() — keep in sync.
+SALE_SUFFIX_RE = re.compile(r"\s*-\s*SALE\s*$", re.IGNORECASE)
+
+
 def first_variant_color(product):
     """Color of the first variant (by position), like variants(first: 1) in the fetch query."""
     position = None
@@ -113,7 +119,7 @@ def first_variant_color(product):
     variants = sorted(product.get("variants") or [], key=lambda v: v.get("position") or 0)
     if position is None or not variants:
         return ""
-    return variants[0].get(f"option{position}") or ""
+    return SALE_SUFFIX_RE.sub("", variants[0].get(f"option{position}") or "").strip()
 
 
 def build_row(product):

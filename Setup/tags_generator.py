@@ -24,7 +24,6 @@ import os
 
 ALWAYS = "sweater, sweaters, sweatshirt, outfit, outfits, casual"
 
-# matched on the LAST WORD of the style, not "contains"
 COMPOSITION = [
     (("COTTON", "MERCER"), "cotton blend, cottons, cotton-vo"),
     (None,                 "wool blend, grassy"),
@@ -37,10 +36,11 @@ PLY = [
 
 SLEEVES = [
     # NOTE: 'vo-design-1' is repeated 3x for TEE — kept as-is from the original
-    ("TEE",         "tee, top tee, tee-vo, vo-design-1, sleeveless, vo-design-1, short sleeve, vo-design-1"),
-    ("3/4",         "3/4 sleeve"),
-    ("HALF SLEEVE", "Half Sleeve, half sleeve, vo-design-1"),
-    (None,          "Long Sleeve, long sleeve"),
+    ("TEE",         "tee, top tee, tee-vo, sleeveless, short sleeve, vo-design-1"),
+    ("TANK",        "tank, tanks, tank top, tank tops, tanktop, tanktops, vo-design-1, sleeveless"),
+    ("3/4",         "3/4 sleeve, vo-design-1"),
+    ("HALF SLEEVE", "short sleeve, Half Sleeve, half sleeve, vo-design-1"),
+    (None,          "Long Sleeve, long sleeve, vo-design-1,"),
 ]
 
 SWEATER_TYPE = [
@@ -63,7 +63,10 @@ KEYWORDS_AFTER_TYPE = {
     "CABLE":                  "cable, cables, cableknit, cable knit",
     " V ":                    "vneck, v neck, vneck-vo",       # spaces on purpose: not SYLVAN / CHEVRON
     "CREW":                   "crew, crewneck, crewneck-vo",
-    "COLLAR":                 "collar, collarneck",
+    ("COLLAR","POLO"):        "collar, collarneck",
+    " T ":                    "turtleneck, turtle neck, mock neck, mockneck, mock-neck",
+    ("COWL","COWLNECK"):      "cowl, cowl neck",
+    "VEST":                   "vest",
 }
 
 # matched on the COLOR (first part before "/"), not the style
@@ -81,14 +84,12 @@ def _any_match(text, rules):
     return [tags for key, tags in rules.items() if any(k in text for k in _keys(key))]
 
 
-def _first_match(text, rules, last_word=False):
-    """The first matching rule; key None is the default. last_word=True compares
-    the style's final word instead of looking anywhere in the name."""
-    target = text.split(" ")[-1] if last_word else text
+def _first_match(text, rules):
+    """The first rule whose keyword appears in `text`; key None is the default."""
     for key, tags in rules:
         if key is None:
             return tags
-        if any(k == target for k in _keys(key)) if last_word else any(k in target for k in _keys(key)):
+        if any(k in text for k in _keys(key)):
             return tags
     return ""
 
@@ -103,7 +104,7 @@ def generate_tags(STYLE, COLOR):
     color = COLOR.upper().split("/")[0]
 
     parts = [STYLE.lower(), ALWAYS]
-    parts.append(_first_match(style, COMPOSITION, last_word=True))
+    parts.append(_first_match(style, COMPOSITION))
     parts.append(_first_match(style, PLY))
     parts.append(_first_match(style, SLEEVES))
     parts += _any_match(style, KEYWORDS_BEFORE_TYPE)

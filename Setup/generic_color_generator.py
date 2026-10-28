@@ -77,7 +77,7 @@ Do not add punctuation, extra words, or formatting.
 Choose the closest matching generic color based on common fashion retail naming conventions.
 """
     response = client.responses.create(
-        model="o4-mini",
+        model="gpt-5.4-mini",
         input=prompt,
     )
     return response.output_text.strip()

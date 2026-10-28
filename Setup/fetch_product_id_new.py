@@ -8,7 +8,12 @@ from googleapiclient.discovery import build
 import pandas as pd
 from dotenv import load_dotenv
 import os
+import re
 from pathlib import Path
+
+# The team sometimes types ' - SALE' after the variant's color in Shopify; strip it so the
+# COLOR column stays just the color. Same rule in webhook_receiver.build_row() — keep in sync.
+SALE_SUFFIX_RE = re.compile(r"\s*-\s*SALE\s*$", re.IGNORECASE)
 load_dotenv(Path(__file__).parent / "Setup/.env", override=True)
 
 """
@@ -99,7 +104,7 @@ def fetch():
           if variants:
               for opt in variants[0]["node"]["selectedOptions"]:
                   if opt["name"].lower() in ["color", "colour"]:
-                      color = opt["value"]
+                      color = SALE_SUFFIX_RE.sub("", opt["value"] or "").strip()
                       break
 
           rows.append([
