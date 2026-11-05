@@ -38,9 +38,9 @@ SLEEVES = [
     # NOTE: 'vo-design-1' is repeated 3x for TEE — kept as-is from the original
     ("TEE",         "tee, top tee, tee-vo, sleeveless, short sleeve, vo-design-1"),
     ("TANK",        "tank, tanks, tank top, tank tops, tanktop, tanktops, vo-design-1, sleeveless"),
-    ("3/4",         "3/4 sleeve, vo-design-1"),
+    ("3/4",         "3/4 sleeve, "),
     ("HALF SLEEVE", "short sleeve, Half Sleeve, half sleeve, vo-design-1"),
-    (None,          "Long Sleeve, long sleeve, vo-design-1,"),
+    (None,          "Long Sleeve, long sleeve, "),
 ]
 
 SWEATER_TYPE = [
