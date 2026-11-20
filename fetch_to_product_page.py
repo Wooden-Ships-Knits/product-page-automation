@@ -583,10 +583,12 @@ class ProductInfo:
         if self.sale == True:
             sale_url = "sale-"
             sale_title = "SALE - "
+            sale_shop = "SALE "
 
-        else: 
+        else:
             sale_url = ""
             sale_title = ""
+            sale_shop = ""
 
         #------------------ PAGE TITLE ------------------ 
         page_title =f"{sale_title}{self.style.title()} Sweater - {self.color.replace('/',' ').title()} | Wooden Ships"
@@ -605,11 +607,11 @@ class ProductInfo:
 
         #------------- meta description ---------------------
         if len(generic_colors) == 1:
-            meta_desc = f"Shop the {self.style.title()} Sweater in {colors[0].title()}{text_generic_colors[0].title()} at Wooden Ships. Free shipping for any full-price sweaters."
+            meta_desc = f"Shop the {sale_shop}{self.style.title()} Sweater in {colors[0].title()}{text_generic_colors[0].title()} at Wooden Ships. Free shipping for any full-price sweaters."
         elif len(generic_colors) == 2:
-            meta_desc = f"Shop the {self.style.title()} Sweater in {colors[0].title()}{text_generic_colors[0].title()} and {colors[1].title()}{text_generic_colors[1].title()} at Wooden Ships. Free shipping for any full-price sweaters."
+            meta_desc = f"Shop the {sale_shop}{self.style.title()} Sweater in {colors[0].title()}{text_generic_colors[0].title()} and {colors[1].title()}{text_generic_colors[1].title()} at Wooden Ships. Free shipping for any full-price sweaters."
         elif len(generic_colors)==3:
-            meta_desc = f"Shop the {self.style.title()} Sweater in {colors[0].title()}{text_generic_colors[0].title()}, {colors[1].title()}{text_generic_colors[1].title()}, and {colors[2].title()}{text_generic_colors[2].title()} at Wooden Ships. Free shipping for any full-price sweaters."
+            meta_desc = f"Shop the {sale_shop}{self.style.title()} Sweater in {colors[0].title()}{text_generic_colors[0].title()}, {colors[1].title()}{text_generic_colors[1].title()}, and {colors[2].title()}{text_generic_colors[2].title()} at Wooden Ships. Free shipping for any full-price sweaters."
 
         #------------- url ---------------------
         product_url = self.style.lower().replace(" ", "-")
